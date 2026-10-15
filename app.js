@@ -178,6 +178,7 @@ function cryptoWalletPage(){
  return layout(
   '<section class="panel crypto-wallet"><div class="sec-head"><span class="sec-title">Portofel crypto virtual</span><span class="demo-badge">NU E CRYPTO REAL</span></div>'+
   '<p class="info-copy">Toate sumele sunt fictive. Nu avem adrese de depunere, tranzacții blockchain, retrageri sau posibilitate de convertire în bani reali.</p>'+
+  '<div class="real-exchange-link"><div><strong>Crypto real într-un exchange?</strong><small>Gestionează-l exclusiv în contul oficial Kraken, separat de Harvest.</small></div><button class="subtle-btn" type="button" data-real-open>Crypto Real ↗</button></div>'+
   holdings+'<div class="crypto-total"><span>Harvest disponibil</span><strong>'+fmt(avail)+' USDT DEMO</strong></div></section>'+
   '<section class="panel"><div class="sec-title">Transferă în Harvest • DEMO</div>'+
   '<label class="form-label" for="virtual-currency">Din moneda virtuală</label>'+
