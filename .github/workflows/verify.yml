@@ -22,5 +22,7 @@ jobs:
           node --check account.js
           node --check online-ui.js
           node --check config.js
+          node --check market.js
+          node --check api/market.js
       - name: Run simulation engine tests
-        run: node --test tests.test.js online.test.js
+        run: node --test tests.test.js online.test.js market.test.js
