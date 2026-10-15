@@ -1,7 +1,6 @@
-// Public configuration only. Publishable/anon keys are designed for browser use.
-// Do NOT put the Supabase service_role key, secret keys or database passwords here.
-// Fill in only after creating a dedicated Supabase project for NOVA.
+// Browser-safe NOVA config: Supabase project URL + public/publishable key only.
+// NOTE: public key never bypasses RLS; keep all server-side secret keys private.
 window.NOVA_SUPABASE_CONFIG = {
-  url: "",
-  publishableKey: ""
+  url: "https://ddhilzlkxmsgmggftwmy.supabase.co",
+  publishableKey: "sb_publishable_EmhVHm4gBePLkGqEzYX56w_vy2WjhpY"
 };
