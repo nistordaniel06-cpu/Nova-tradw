@@ -34,6 +34,7 @@ function panel(){
   '<p>Nu introdu niciodată în NOVA parola Kraken, cheia API, fraza seed sau cheia privată. Nu există comisioane din depuneri sau bonusuri financiare pentru echipa referral.</p>'+
   '<p><b>Conectarea soldului real prin OAuth este încă indisponibilă.</b> Necesită înregistrarea unei aplicații autorizate la Kraken și consimțământ pentru permisiuni de citire; momentan NOVA nu îți poate afișa soldul real.</p>'+
   '<a class="nrc-link" href="'+X.link("connectDocs")+'" target="_blank" rel="noopener noreferrer">Kraken Connect — documentație oficială <span>↗</span></a>'+
+  '<div id="nrc-connect-status" class="nrc-oauth-status" aria-live="polite"><p>Se verifică disponibilitatea Kraken Connect…</p></div>'+
   '</section>'+
   '<button class="nrc-secondary" type="button" data-real-close>Înapoi în NOVA Paper Trading</button>'+
   '</div>';
@@ -41,7 +42,7 @@ function panel(){
 function render(){
  root.innerHTML=(opened?'<div class="nrc-overlay" data-real-close></div><section class="nrc-panel" role="dialog" aria-modal="true" aria-label="Crypto Real extern">'+panel()+'</section>':'');
 }
-function toggle(flag){opened=flag;render();}
+function toggle(flag){opened=flag;render();if(flag)document.dispatchEvent(new CustomEvent('nova-kraken-panel-open'));}
 document.addEventListener("click",function(e){
  var launch=e.target.closest("[data-real-open]");
  if(launch){e.preventDefault();toggle(true);return;}
