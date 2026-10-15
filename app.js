@@ -1,7 +1,8 @@
 /* NOVA Trade presentation frontend: simulations only, NO live markets or real payments. */
 (function(){
 "use strict";
-var E=window.NovaEngine, P=window.NovaProgress, C=window.NovaCommunity;
+var E=window.NovaEngine, P=window.NovaProgress, C=window.NovaCommunity, M=window.NovaMarket;
+if(!M){document.body.textContent="Nu pot porni fluxul de cotații pentru Paper Trading.";return;}
 if(!C){document.body.textContent="Modul comunitate și Battle Pass nu s-a încărcat.";return;}
 if(!P){document.body.textContent="Modul de progres nu s-a încărcat.";return;}
 if(!E){document.body.textContent="Eroare: motorul demonstrativ lipsește.";return;}
@@ -15,21 +16,49 @@ var escapeHtml=function(s){return String(s).replace(/[&<>"']/g,function(c){retur
 function load(){try{var s=JSON.parse(localStorage.getItem(STORE));return E.validate(s)?s:E.startingState();}catch(e){return E.startingState();}}
 function save(){try{localStorage.setItem(STORE,JSON.stringify(state));}catch(e){}}
 function tick(){return Math.floor(Date.now()/4000);}
-function price(asset){return E.priceAt(asset,tick());}
+function price(asset){var x=M.last(asset);if(x)return x.last;
+  var open=state.positions.find(function(p){return p.asset===asset;});
+  return open?open.entry:E.ASSETS[asset].base;
+}
+function tradingQuote(asset){var x=M.quote(asset);if(!x)throw Error("Cotația live "+asset+"/USD nu este disponibilă sau este veche. Așteaptă reconectarea la Kraken.");return x;}
+function marketBanner(){var q=M.quote("BTC");
+  return '<div class="market-feed-banner '+(q?"is-live":"is-offline")+'">'+
+   (q?'● KRAKEN SPOT LIVE • BTC/USD '+fmt(q.last)+' • spread '+fmt(q.spread)+' USD':
+       '◌ KRAKEN SPOT • Se așteaptă o cotație validă. Ordinele DEMO sunt blocate momentan.')+
+   '<small>Cotații de referință în USD • Capital virtual în unități USDT demonstrative • Fără depuneri</small></div>';
+}
 function metrics(){return E.metrics(state,price);}
 function dateLabel(s){return new Date(s).toLocaleString("ro-RO",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});}
 function todayPnl(offset){var start=new Date();start.setHours(0,0,0,0);var a=start.getTime()-offset*86400000,b=a+86400000;return E.round(state.executions.filter(function(x){var t=new Date(x.closedAt).getTime();return t>=a&&t<b;}).reduce(function(s,x){return s+x.pnl;},0));}
-function progressSvg(){var array=[],t=tick();for(var i=0;i<40;i++)array.push(priceAt("BTC",t-(39-i)*6));var lo=Math.min.apply(null,array),hi=Math.max.apply(null,array);var parts=array.map(function(v,i){return (i*420/39).toFixed(2)+","+(49-(v-lo)/Math.max(1,hi-lo)*38).toFixed(2);});
-return '<svg class="spark" viewBox="0 0 420 58" preserveAspectRatio="none" role="img" aria-label="Grafic demonstrativ"><defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#28e9b8" stop-opacity=".24"/><stop offset="1" stop-color="#28e9b8" stop-opacity="0"/></linearGradient></defs><path d="M'+parts.join(" L")+' L420,58 L0,58 Z" fill="url(#sg)"/><path d="M'+parts.join(" L")+'" fill="none" stroke="#3af6cd" stroke-width="2.8"/></svg>';}
-function priceAt(k,t){return E.priceAt(k,t);}
-function candleSvg(){var arr=[],t=tick(),lo=Infinity,hi=-Infinity;
-for(var i=37;i>=0;i--){var x=t-i*frame,o=priceAt(pair,x-frame),c=priceAt(pair,x),h=Math.max(o,c)*(1+Math.abs(Math.sin(x*.11))*.001+0.0006),l=Math.min(o,c)*(1-Math.abs(Math.cos(x*.13))*.001-0.0006);arr.push({o:o,c:c,h:h,l:l});lo=Math.min(lo,l);hi=Math.max(hi,h);}
-var Y=function(v){return 206-(v-lo)/Math.max(1,hi-lo)*190;};
-var out='<svg class="chart" viewBox="0 0 750 224" preserveAspectRatio="none" role="img" aria-label="Grafic cu lumânări și prețuri simulate">';
-for(var j=0;j<5;j++)out+='<line x1="0" x2="750" y1="'+(16+j*48)+'" y2="'+(16+j*48)+'" stroke="#2b4658" stroke-opacity=".6"/>';
-arr.forEach(function(z,i){var x=11+i*19.5,color=z.c>=z.o?"#03dca4":"#ff5c70",top=Math.min(Y(z.c),Y(z.o)),height=Math.max(2,Math.abs(Y(z.c)-Y(z.o)));out+='<line x1="'+x+'" x2="'+x+'" y1="'+Y(z.h)+'" y2="'+Y(z.l)+'" stroke="'+color+'" stroke-width="2"/><rect x="'+(x-5)+'" y="'+top+'" width="10" height="'+height+'" fill="'+color+'" rx="1"/>';});
-return out+'</svg>';}
-
+function progressSvg(){
+ var bars=M.bars("BTC").slice(-40);
+ if(bars.length<2)return '<div class="empty" style="margin:13px 0">Se încarcă istoricul real al prețurilor BTC/USD…</div>';
+ var values=bars.map(function(b){return b.close;});
+ var lo=Math.min.apply(null,values),hi=Math.max.apply(null,values),delta=Math.max(1,hi-lo);
+ var pts=values.map(function(v,i){return (i*420/Math.max(1,values.length-1)).toFixed(2)+","+(49-(v-lo)/delta*38).toFixed(2);});
+ return '<svg class="spark" viewBox="0 0 420 58" preserveAspectRatio="none" role="img" aria-label="Grafic real de cotații Kraken BTC/USD"><defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#28e9b8" stop-opacity=".24"/><stop offset="1" stop-color="#28e9b8" stop-opacity="0"/></linearGradient></defs><path d="M'+pts.join(" L")+' L420,58 L0,58 Z" fill="url(#sg)"/><path d="M'+pts.join(" L")+'" fill="none" stroke="#3af6cd" stroke-width="2.8"/></svg>';
+}
+function candleSvg(){
+ var raw=M.bars(pair);if(raw.length<2)return '<div class="empty" style="margin-top:13px">Graficul OHLC Kraken se încarcă. Nu afișăm prețuri inventate.</div>';
+ var step=Math.max(1,frame),arr=[];
+ for(var i=0;i<raw.length;i+=step){var items=raw.slice(i,i+step);if(!items.length)continue;
+  arr.push({o:items[0].open,c:items[items.length-1].close,
+    h:Math.max.apply(null,items.map(function(x){return x.high;})),
+    l:Math.min.apply(null,items.map(function(x){return x.low;}))});
+ }
+ arr=arr.slice(-38);
+ var lo=Math.min.apply(null,arr.map(function(x){return x.l;})),
+     hi=Math.max.apply(null,arr.map(function(x){return x.h;}));
+ var Y=function(v){return 206-(v-lo)/Math.max(1,hi-lo)*190;};
+ var width=750/arr.length;
+ var out='<svg class="chart" viewBox="0 0 750 224" preserveAspectRatio="none" role="img" aria-label="Lumânări reale Kraken Spot, interval agregat">';
+ for(var j=0;j<5;j++)out+='<line x1="0" x2="750" y1="'+(16+j*48)+'" y2="'+(16+j*48)+'" stroke="#2b4658" stroke-opacity=".6"/>';
+ arr.forEach(function(z,i){var x=(i+.5)*width,col=z.c>=z.o?"#03dca4":"#ff5c70",top=Math.min(Y(z.c),Y(z.o)),h=Math.max(2,Math.abs(Y(z.c)-Y(z.o)));
+  out+='<line x1="'+x+'" x2="'+x+'" y1="'+Y(z.h)+'" y2="'+Y(z.l)+'" stroke="'+col+'" stroke-width="2"/>'+
+     '<rect x="'+(x-Math.min(5,width*.28))+'" y="'+top+'" width="'+Math.min(10,width*.56)+'" height="'+h+'" fill="'+col+'" rx="1"/>';
+ });
+ return out+'</svg>';
+}
 function levelStatus(){return P.evaluate(state,metrics().equity);}
 function syncLevel(){
   var old=state.progress&&Number.isInteger(state.progress.highestLevel)?state.progress.highestLevel:0;
@@ -121,17 +150,41 @@ function teamPage(){
 }
 function passPage(){return layout(battlePass()+lessons(),levelCard()+'<section class="panel"><div class="sec-title">Reguli Battle Pass</div><p class="info-copy">Nivelurile de învățare Easy/Pro și permisul de simulări zilnice sunt separate: 20, 40, 60, 80, până la maximum 100 operațiuni zilnice. Până la un backend real, limitele sunt doar locale și se pot manipula.</p><button class="primary" data-action="nav" data-value="team">Vezi echipa și invitațiile →</button></section>');}
 
-function topbar(){return '<header class="header"><div class="brand"><div class="logo">N</div><div><div class="brand-name">NOVA <i>Trade</i></div><div class="brand-sub">Platformă de prezentare</div></div></div><div class="header-right"><span class="demo-badge">● DEMO</span><button class="small-ghost" data-action="guide">Ghid ?</button></div></header><div class="disclaimer">ⓘ <b>SIMULARE</b> — sume și tranzacții exclusiv virtuale. Rezultatele sunt fictive, nu randamente reale.</div>'+modeSwitcher()+referralInvitation();}
+function topbar(){return '<header class="header"><div class="brand"><div class="logo">N</div><div><div class="brand-name">NOVA <i>Trade</i></div><div class="brand-sub">Platformă de prezentare</div></div></div><div class="header-right"><span class="demo-badge">● DEMO</span><button class="small-ghost" data-action="guide">Ghid ?</button></div></header><div class="disclaimer">ⓘ <b>SIMULARE</b> — sume și tranzacții exclusiv virtuale. Rezultatele sunt fictive, nu randamente reale.</div>'+marketBanner()+modeSwitcher()+referralInvitation();}
 function wallet(){var m=metrics(),d=E.round(m.equity-E.DEFAULT_BALANCE);return '<section class="panel hero"><div class="label">Active totale • USDT virtuali</div><div class="big-balance">'+fmt(m.equity)+' <small style="font:600 12px DM Sans;color:#bed7f2">USDT</small></div><div style="font-size:12px;font-weight:800" class="'+cssClass(d)+'">'+sign(d)+' USDT <span style="color:#b9d5ef;font-weight:500">față de soldul inițial</span></div>'+progressSvg()+'<div class="hero-metrics"><div><div class="metric-label">Disponibil</div><div class="metric-value">'+fmt(m.available)+'</div></div><div><div class="metric-label">Marjă blocată</div><div class="metric-value">'+fmt(m.frozen)+'</div></div><div><div class="metric-label">PnL deschis</div><div class="metric-value '+cssClass(m.pnl)+'">'+sign(m.pnl)+'</div></div></div></section>';}
-function harvest(){var pct=pending?Math.min(99,100*(Date.now()-busyStarted)/2100):0;
-return '<section class="panel harvest"><div class="harvest-head"><div><h2 class="harvest-heading">Harvest • One Click</h2><div class="harvest-sub">Cumpărare → vânzare în circa 2 secunde</div></div><span class="harvest-icon">↗</span></div><div style="margin-top:16px"><label class="form-label" for="harvest-amount" style="color:#bbf1dc">Sumă pentru operațiune (USDT demo)</label><input id="harvest-amount" class="field" type="number" min="1" max="10000" step="1" inputmode="decimal" value="'+escapeHtml(margin)+'" '+(pending?"disabled":"")+'></div><div class="demo-select"><button data-action="scenario" data-value="profit" class="scenario '+(scenario==="profit"?"active":"")+'" '+(pending?"disabled":"")+'>↗ Exemplu profit</button><button data-action="scenario" data-value="loss" class="scenario loss-scenario '+(scenario==="loss"?"active":"")+'" '+(pending?"disabled":"")+'>↘ Exemplu pierdere</button></div><button class="harvest-btn" data-action="harvest" '+(pending?"disabled":"")+'>'+(pending?"◌ Se execută simularea…":"✦ Începe Harvest DEMO")+'</button><div class="progress-shell"><div class="progress-value" id="harvest-progress" style="width:'+pct+'%"></div></div><div class="harvest-status" id="harvest-status">'+(pending?"1/2: Cumpărare virtuală înregistrată…":"Pregătit: BTC/USDT • LONG • scenariu demonstrativ")+'</div><div class="harvest-hint">Scenariile sunt <b>prestabilite exclusiv pentru prezentare</b>. Un exemplu de profit nu garantează niciun câștig real.</div>'+quotaSummary()+'</section>';}
+function harvest(){
+ var pct=pending?Math.min(99,100*(Date.now()-busyStarted)/2100):0,
+ q=M.quote("BTC"),mayRun=!pending&&!!q&&C.canTrade(state,Date.now());
+ return '<section class="panel harvest"><div class="harvest-head"><div><h2 class="harvest-heading">Harvest • Paper Trading</h2><div class="harvest-sub">Cumpărare virtuală la ask → vânzare la bid în ~2 secunde</div></div><span class="harvest-icon">↗</span></div>'+
+ '<div style="margin-top:16px"><label class="form-label" for="harvest-amount" style="color:#bbf1dc">Marjă virtuală pentru ordin • USDT demo</label><input id="harvest-amount" class="field" type="number" min="1" max="10000" step="1" inputmode="decimal" value="'+escapeHtml(margin)+'" '+(pending?"disabled":"")+'></div>'+
+ '<div class="quote-mini"><span>Kraken BTC/USD • intrare ask <b>'+(q?fmt(q.ask):"Indisponibil")+'</b></span><span>Ieșire bid <b>'+(q?fmt(q.bid):"Indisponibil")+'</b></span></div>'+
+ '<button class="harvest-btn" data-action="harvest" '+(mayRun?"":"disabled")+ '>'+(pending?"◌ Tranzacție demonstrativă în desfășurare…":"✦ Începe Harvest · PAPER")+'</button>'+
+ '<div class="progress-shell"><div class="progress-value" id="harvest-progress" style="width:'+pct+'%"></div></div>'+
+ '<div class="harvest-status" id="harvest-status">'+(pending?"1/2: ordin virtual deschis…":q?"Cotație disponibilă • profitul sau pierderea nu sunt prestabilite":"Aștept prețuri reale de la Kraken")+'</div>'+
+ '<div class="harvest-hint">Rezultatul se bazează pe <b>cotația Kraken</b> și comisioane demo de 0,05% pe sens. În doar 2 secunde, spread-ul și taxele pot provoca pierderi chiar dacă piața nu se mișcă. Nu sunt tranzacții reale.</div>'+
+ quotaSummary()+'</section>';
+}
 function stats(){var m=metrics(),items=[["⌁","Rezultat azi",sign(todayPnl(0))+" USDT",cssClass(todayPnl(0))],["◧","Marjă blocată",fmt(m.frozen)+" USDT",""],["✓","Tranzacții finalizate",state.executions.length,""],["◉","Sold disponibil",fmt(m.available)+" USDT",""],["◷","Rezultat ieri",sign(todayPnl(1))+" USDT",cssClass(todayPnl(1))],["⇄","Poziții active",state.positions.length,""]];
 return '<section class="panel"><div class="sec-head"><span class="sec-title">Rezumat cont</span><span class="sec-caption">Virtual</span></div><div class="gridstats">'+items.map(function(it){return '<div class="statbox"><span class="staticon">'+it[0]+'</span><span class="statlabel">'+it[1]+'</span><strong class="statvalue '+it[3]+'">'+it[2]+'</strong></div>';}).join("")+'</div></section>';}
 function coin(a){return '<div class="coin coin-'+a+'">'+E.ASSETS[a].symbol+'</div>';}
-function markets(){var html='<section class="panel"><div class="sec-head"><span class="sec-title">Piețe simulate</span><span class="sec-caption">Prețuri fictive</span></div>';
-["BTC","ETH","SOL"].forEach(function(a){var p=price(a),old=priceAt(a,tick()-48),change=(p/old-1)*100;html+='<div class="market-item">'+coin(a)+'<div><div class="market-symbol">'+a+'/USDT</div><div class="market-name">'+E.ASSETS[a].name+'</div></div><div class="market-price">'+fmt(p)+'<small class="'+cssClass(change)+'">'+sign(change)+'%</small></div><button class="subtle-btn" data-action="pair" data-value="'+a+'">Trade</button></div>';});return html+'</section>';}
-function chart(){var p=price(pair),old=priceAt(pair,tick()-40),pct=(p/old-1)*100;
-return '<section class="panel"><div class="sec-head"><span class="sec-title">Grafic • '+pair+'/USDT</span><span class="sec-caption">Date sintetice</span></div><div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><div><strong style="font:700 25px Space Grotesk">'+fmt(p)+'</strong><span style="font-size:12px;margin-left:7px" class="'+cssClass(pct)+'">'+sign(pct)+'%</span></div><button class="subtle-btn" data-action="nav" data-value="trade">Long / Short →</button></div>'+candleSvg()+'<div class="tabs">'+[[1,"1m"],[2,"5m"],[4,"15m"],[8,"1h"],[16,"4h"],[25,"1z"]].map(function(a){return '<button class="tab '+(frame===a[0]?"selected":"")+'" data-action="frame" data-value="'+a[0]+'">'+a[1]+'</button>';}).join("")+'</div></section>';}
+function markets(){
+ var html='<section class="panel"><div class="sec-head"><span class="sec-title">Piață crypto • Spot</span><span class="sec-caption">Kraken USD · read-only</span></div>';
+ ["BTC","ETH","SOL"].forEach(function(a){var q=M.quote(a),open=q?q.sessionOpen:0,change=q&&open>0?(q.last/open-1)*100:null;
+  html+='<div class="market-item">'+coin(a)+'<div><div class="market-symbol">'+a+'/USD</div><div class="market-name">'+E.ASSETS[a].name+(q?' • Kraken':' • cotație indisponibilă')+'</div></div>'+
+   '<div class="market-price">'+(q?fmt(q.last):"—")+'<small class="'+(change===null?"muted":cssClass(change))+'">'+(change===null?"Fără date":sign(change)+'% de la deschiderea zilei')+'</small></div>'+
+   '<button class="subtle-btn" data-action="pair" data-value="'+a+'">Trade</button></div>';
+ });
+ return html+'</section>';
+}
+function chart(){
+ var q=M.quote(pair),change=q&&q.sessionOpen>0?(q.last/q.sessionOpen-1)*100:null;
+ return '<section class="panel"><div class="sec-head"><span class="sec-title">Grafic • '+pair+'/USD</span><span class="sec-caption">Kraken Spot · lumânări reale</span></div>'+
+ '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><div><strong style="font:700 25px Space Grotesk">'+(q?fmt(q.last):"—")+'</strong>'+
+ (change===null?'<span class="muted" style="font-size:11px;margin-left:7px">Se încarcă</span>':'<span style="font-size:12px;margin-left:7px" class="'+cssClass(change)+'">'+sign(change)+'%</span>')+
+ '</div><button class="subtle-btn" data-action="nav" data-value="trade">Long / Short →</button></div>'+
+ candleSvg()+'<div class="tabs">'+[[1,"1m"],[5,"5m"],[15,"15m"]].map(function(x){return '<button class="tab '+(frame===x[0]?"selected":"")+'" data-action="frame" data-value="'+x[0]+'">'+x[1]+'</button>';}).join("")+'</div>'+
+ '<p class="info-copy">Flux real doar pentru informare. Graficul afișează intervalul disponibil din API, nu ordine executate la un exchange.</p></section>';
+}
 function positions(){if(!state.positions.length)return '<div class="empty"><b>Nu ai poziții deschise</b>Încearcă modul Trading manual sau un Harvest demonstrativ.</div>';
 return '<div class="positions">'+state.positions.map(function(p){var pl=E.round(E.unrealized(p,price(p.asset)));return '<div class="position"><div class="position-head"><div><span class="position-symbol">'+p.asset+'/USDT</span> <span class="mini-tag '+(p.side==="LONG"?"long":"short")+'">'+p.side+' '+p.leverage+'x</span></div><button class="subtle-btn" data-action="close" data-value="'+p.id+'">Închide</button></div><div class="position-grid"><div class="position-stat"><small>Intrare</small><strong>'+fmt(p.entry)+'</strong></div><div class="position-stat"><small>Curent</small><strong>'+fmt(price(p.asset))+'</strong></div><div class="position-stat"><small>PnL demo</small><strong class="'+cssClass(pl)+'">'+sign(pl)+'</strong></div></div></div>';}).join("")+'</div>';}
 function positionPanel(){return '<section class="panel"><div class="sec-head"><span class="sec-title">Poziții deschise ('+state.positions.length+')</span><button class="subtle-btn" data-action="nav" data-value="positions">Vezi toate</button></div>'+positions()+'</section>';}
@@ -165,16 +218,61 @@ function nav(){var items=[["home","⌂","Acasă"],["harvest","✦","Harvest"],["
 function render(){var t=toastText?'<div class="toast" role="status">'+escapeHtml(toastText)+'</div>':"";$("app").innerHTML='<main class="layout">'+topbar()+main()+'</main>'+nav()+t;}
 function notify(txt){toastText=txt;render();clearTimeout(timer);timer=setTimeout(function(){toastText="";var t=document.querySelector(".toast");if(t)t.remove();},5000);}
 function go(t){tab=t;render();window.scrollTo(0,0);}
-function startHarvest(){if(pending)return;if(!C.canTrade(state,Date.now()))return notify("Ai folosit toate tranzacțiile demo disponibile astăzi. Continuă lecțiile sau revino mâine.");var m=Number(margin),fee=E.round(m*E.FEE_RATE);
-if(!Number.isFinite(m)||m<1||m>10000)return notify("Introdu o sumă de 1–10.000 USDT virtuali.");
-if(m+fee>state.cash)return notify("Sold virtual insuficient.");
-var open;try{open=E.open(state,{asset:"BTC",side:"LONG",margin:m,leverage:1,entry:price("BTC"),automated:true});}catch(e){return notify(e.message);}
-state=open.state;recordVirtualOpening();save();pending=true;busyStarted=Date.now();render();
-var id=open.position.id,mode=scenario;
-var indicator=setInterval(function(){var elapsed=Date.now()-busyStarted,b=$("harvest-progress"),st=$("harvest-status");if(b)b.style.width=Math.min(100,elapsed/2000*100)+"%";if(st && elapsed>950)st.textContent="2/2: Vânzare virtuală și calculul rezultatului…";if(elapsed>=2000)clearInterval(indicator);},70);
-setTimeout(function(){clearInterval(indicator);try{var position=state.positions.find(function(x){return x.id===id;});if(position){var result=E.close(state,id,E.harvestExit(position,mode),"harvest");state=result.state;recordVirtualClosing();var newRank=syncLevel();pending=false;notify((newRank?"Nivel nou: "+newRank+". ":"")+(mode==="profit"?"Exemplu de profit: ":"Exemplu de pierdere: ")+sign(result.execution.pnl)+" USDT virtuali. Vezi Istoric.");}else{pending=false;notify("Operațiunea demo nu a fost găsită.");}}catch(e){pending=false;notify("Eroare demo: "+e.message);}},2050);}
-function openManual(){if(pending)return;if(!C.canTrade(state,Date.now()))return notify("Limita zilnică de tranzacții virtuale a fost atinsă.");if(!isPro())return notify("Deblochează și activează NOVA Pro pentru Long / Short manual.");try{var opened=E.open(state,{asset:pair,side:side,margin:Number(manualMargin),leverage:lever,entry:price(pair),automated:false});state=opened.state;recordVirtualOpening();save();tab="positions";notify("Poziția "+side+" demo este deschisă.");}catch(e){notify(e.message);}}
-function closeManual(id){if(pending)return;var x=state.positions.find(function(p){return p.id===id;});if(!x)return notify("Poziția nu există.");if(!window.confirm("Închizi poziția virtuală "+x.asset+" "+x.side+"?"))return;try{var r=E.close(state,id,price(x.asset),"manual");state=r.state;recordVirtualClosing();var newRank=syncLevel();notify((newRank?"Nivel nou: "+newRank+". ":"")+"Închidere virtuală, PnL net: "+sign(r.execution.pnl)+" USDT.");}catch(e){notify(e.message);}}
+function startHarvest(){
+ if(pending)return;
+ if(!C.canTrade(state,Date.now()))return notify("Limita zilnică de tranzacții virtuale a fost atinsă. Nu este obligatoriu să tranzacționezi.");
+ var q;try{q=tradingQuote("BTC");}catch(e){return notify(e.message);}
+ var m=Number(margin),fee=E.round(m*E.FEE_RATE);
+ if(!Number.isFinite(m)||m<1||m>10000)return notify("Introdu o marjă între 1 și 10.000 USDT virtuali.");
+ if(m+fee>state.cash)return notify("Sold virtual insuficient.");
+ var opened;try{opened=E.open(state,{asset:"BTC",side:"LONG",margin:m,leverage:1,entry:q.ask,automated:true});}catch(e){return notify(e.message);}
+ state=opened.state;recordVirtualOpening();save();pending=true;busyStarted=Date.now();render();
+ var id=opened.position.id;
+ var indicator=setInterval(function(){var elapsed=Date.now()-busyStarted,b=$("harvest-progress"),label=$("harvest-status");
+   if(b)b.style.width=Math.min(100,elapsed/2050*100)+"%";
+   if(label&&elapsed>950)label.textContent="2/2: cotație actualizată și calcul de ieșire…";
+   if(elapsed>=2050)clearInterval(indicator);
+ },75);
+ setTimeout(async function(){
+  clearInterval(indicator);
+  try{
+    await M.refresh("BTC");
+    var now=tradingQuote("BTC"),
+        pos=state.positions.find(function(x){return x.id===id;});
+    if(!pos){pending=false;return notify("Poziția nu mai este deschisă.");}
+    var result=E.close(state,id,now.bid,"harvest");
+    state=result.state;recordVirtualClosing();var rank=syncLevel();pending=false;
+    notify((rank?"Nivel nou: "+rank+". ":"")+"Harvest închis la cotația Kraken bid: "+sign(result.execution.pnl)+" USDT demo. Rezultatul poate fi negativ.");
+  }catch(e){
+    pending=false;save();
+    notify("Cotația nu mai este disponibilă. Poziția virtuală a rămas deschisă pentru închidere manuală după reconectare.");
+  }
+ },2050);
+}
+function openManual(){
+ if(pending)return;
+ if(!C.canTrade(state,Date.now()))return notify("Ai atins limita de ordine demo pentru astăzi.");
+ if(!isPro())return notify("Activează NOVA Pro pentru Long / Short manual.");
+ try{
+   var q=tradingQuote(pair);
+   var entry=side==="LONG"?q.ask:q.bid;
+   var opened=E.open(state,{asset:pair,side:side,margin:Number(manualMargin),leverage:lever,entry:entry,automated:false});
+   state=opened.state;recordVirtualOpening();save();tab="positions";
+   notify("Poziție "+side+" PAPER deschisă la Kraken "+(side==="LONG"?"ask":"bid")+" ("+fmt(entry)+" USD).");
+ }catch(e){notify(e.message);}
+}
+function closeManual(id){
+ if(pending)return;
+ var pos=state.positions.find(function(x){return x.id===id;});if(!pos)return notify("Poziția nu există.");
+ var quote;try{quote=tradingQuote(pos.asset);}catch(e){return notify(e.message);}
+ if(!window.confirm("Închizi poziția virtuală "+pos.asset+" "+pos.side+" la prețul real "+(pos.side==="LONG"?"bid":"ask")+" de "+fmt(pos.side==="LONG"?quote.bid:quote.ask)+" USD?"))return;
+ try{
+  var exit=pos.side==="LONG"?quote.bid:quote.ask;
+  var result=E.close(state,id,exit,"manual");
+  state=result.state;recordVirtualClosing();var rank=syncLevel();
+  notify((rank?"Nivel nou: "+rank+". ":"")+"PnL net paper: "+sign(result.execution.pnl)+" USDT demo.");
+ }catch(e){notify(e.message);}
+}
 document.addEventListener("click",function(event){var el=event.target.closest("[data-action]");if(!el)return;var a=el.dataset.action,v=el.dataset.value;
 if(a==="nav")go(v);else if(a==="copy-ref"){var link=$("invite-link").value;if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(link).then(function(){notify("Linkul de invitație DEMO a fost copiat.");}).catch(function(){window.prompt("Copiază linkul:",link);});}else window.prompt("Copiază linkul:",link);}else if(a==="dismiss-invite"){inviteFromLink=null;render();}else if(a==="accept-invite"){try{C.joinPreview(state,inviteFromLink,Date.now());save();inviteFromLink=null;notify("Invitația a fost salvată local (DEMO). Nu este o înscriere verificată.");}catch(e){notify(e.message);}}else if(a==="rename-team"){try{C.renameTeam(state,$("team-name").value,Date.now());save();notify("Numele echipei DEMO a fost actualizat.");}catch(e){notify(e.message);}}else if(a==="lesson"){var parts=v.split(":"),result=C.completeLesson(state,parts[0],Number(parts[1]),Date.now());if(result.correct){save();notify(result.alreadyDone?"Lecția era deja completată.":"+30 XP • Lecție completată!");}else notify("Nu este corect. Poți încerca din nou, fără penalizare.");}else if(a==="mode"){try{var status=P.setMode(state,v,metrics().equity);save();go("home");notify("Modul NOVA "+status.mode+" a fost activat.");}catch(e){go("levels");notify(e.message);}}else if(a==="scenario"&&!pending){scenario=v;render();}
 else if(a==="harvest")startHarvest();
@@ -191,6 +289,10 @@ else if(a==="guide")window.alert("Ghid demo:\n1. Alege Exemplu profit sau Exempl
 document.addEventListener("input",function(event){if(event.target.id==="harvest-amount")margin=event.target.value;else if(event.target.id==="manual-amount"){manualMargin=event.target.value;var n=$("notional"),f=$("orderfee"),amount=Number(manualMargin)||0;if(n)n.textContent=fmt(amount*lever)+" USDT";if(f)f.textContent=fmt(E.round(amount*lever*E.FEE_RATE))+" USDT";}});
 document.addEventListener("change",function(event){if(event.target.id==="filter-date"){filterDate=event.target.value;render();}});
 setInterval(function(){if(document.hidden||pending)return;var focused=document.activeElement;if(focused && ["INPUT","SELECT","TEXTAREA"].includes(focused.tagName))return;
-for(var i=state.positions.length-1;i>=0;i--){var po=state.positions[i];if(E.unrealized(po,price(po.asset))<=-po.margin){try{state=E.close(state,po.id,price(po.asset),"liquidation").state;recordVirtualClosing();save();}catch(e){}}}render();},4000);
-syncLevel();render();
+for(var i=state.positions.length-1;i>=0;i--){var po=state.positions[i],q=M.quote(po.asset);if(!q)continue;
+ var exit=po.side==="LONG"?q.bid:q.ask;
+ if(E.unrealized(po,exit)<=-po.margin){try{state=E.close(state,po.id,exit,"liquidation").state;recordVirtualClosing();save();}catch(e){}}
+ }render();},4000);
+window.addEventListener("nova-market-update",function(){var focused=document.activeElement;if(focused&&["INPUT","SELECT","TEXTAREA"].includes(focused.tagName))return;render();});
+M.start();syncLevel();render();
 })();
