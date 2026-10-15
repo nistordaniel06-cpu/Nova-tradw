@@ -1,0 +1,28 @@
+/* Isolated NOVA Auth drawer: never overlays app content until explicitly opened. */
+.nova-o-launch{position:fixed;bottom:calc(83px + env(safe-area-inset-bottom));right:14px;z-index:17;color:#e9f9ff;background:linear-gradient(110deg,#0c6abb,#1287bf);border:1px solid #419ee3;box-shadow:0 8px 30px #0007;border-radius:50px;padding:10px 16px;font:800 12px "DM Sans",sans-serif}
+.nova-o-launch:hover{background:#176da0}
+.nova-o-backdrop{position:fixed;inset:0;background:#020a13c9;z-index:25}
+.nova-o-panel{position:fixed;z-index:26;right:0;top:0;bottom:0;background:#0b2033;box-shadow:-15px 0 50px #0009;border-left:1px solid #33526a;color:#e4f6ff;width:min(100%,450px);display:flex;flex-direction:column;font:13px "DM Sans",sans-serif}
+.nova-o-head{display:flex;align-items:center;justify-content:space-between;padding:19px 17px;gap:12px;border-bottom:1px solid #2b465b}
+.nova-o-head strong{font:800 19px "Space Grotesk",sans-serif}
+.nova-o-close{color:#b4d4e9;background:#16354b;border:1px solid #35566c;border-radius:9px;padding:7px 10px;font-size:13px}
+.nova-o-scroll{overflow:auto;padding:17px;flex:1;padding-bottom:40px}
+.nova-o-scroll p{color:#acc9d9;font-size:12px;line-height:1.7}
+.nova-o-scroll h3{color:#f2f9ff;font-size:15px;margin:20px 0 8px}
+.nova-o-scroll small{color:#8eadbf;font-size:11px;line-height:1.5}
+.nova-o-label{display:block;font-weight:800;color:#b3d2e5;font-size:11px;margin:13px 0 6px}
+.nova-o-input{background:#091725;color:#eff9ff;border:1px solid #355773;border-radius:10px;padding:12px;width:100%;min-height:45px;outline:none;box-sizing:border-box}
+.nova-o-input:focus{border-color:#40c2ff;outline:2px solid #27b6ff23}
+.nova-o-btn{border:1px solid #315576;border-radius:11px;padding:10px 13px;background:#1b3b55;color:#daebfb;font-weight:800;font-size:12px;margin-top:9px}
+.nova-o-btn.primary{background:linear-gradient(90deg,#126bda,#18abeb);border-color:#2294e9;color:white}
+.nova-o-row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.nova-o-row>.nova-o-btn{flex:1}
+.nova-o-note{padding:13px;border-radius:12px;background:#11334a;border:1px solid #295570;margin:10px 0}
+.nova-o-note b{color:#d9f2ff}
+.nova-o-flash{border-radius:10px;background:#134c60;border:1px solid #26a3c4;color:#d4fff7;padding:13px;margin-top:15px;font-size:12px}
+.nova-o-member{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px;border-bottom:1px solid #28485e}
+.nova-o-member b{font-size:12px}.nova-o-member small{text-align:right}
+.nova-o-check{display:flex;align-items:start;gap:9px;font-size:12px;line-height:1.5;color:#d5ebfa;background:#103045;padding:11px;border-radius:11px;margin:13px 0}
+.nova-o-check input{width:18px;height:18px;flex:none;accent-color:#10a9f0;margin:0}
+.nova-o-acct{overflow-wrap:anywhere}
+@media(max-width:440px){.nova-o-launch{bottom:calc(81px + env(safe-area-inset-bottom));right:8px;font-size:11px;padding:9px 12px}}
