@@ -1,7 +1,8 @@
 /* NOVA Trade: Kraken market references, virtual-only paper trading. No deposits or investments. */
 (function(){
 "use strict";
-var E=window.NovaEngine, P=window.NovaProgress, C=window.NovaCommunity, M=window.NovaMarket;
+var E=window.NovaEngine, P=window.NovaProgress, C=window.NovaCommunity, M=window.NovaMarket, W=window.NovaWallet;
+if(!W){document.body.textContent='Portofelul virtual lipsește.';return;}
 if(!M){document.body.textContent="Nu pot porni fluxul de cotații pentru Paper Trading.";return;}
 if(!C){document.body.textContent="Modul comunitate și Battle Pass nu s-a încărcat.";return;}
 if(!P){document.body.textContent="Modul de progres nu s-a încărcat.";return;}
@@ -59,7 +60,9 @@ function candleSvg(){
  });
  return out+'</svg>';
 }
-function levelStatus(){return P.evaluate(state,metrics().equity);}
+function netWalletTransfers(){return W.snapshot(state).transfers.reduce(function(s,x){return s+(x.direction==="wallet-to-harvest"?x.net:-x.net);},0);}
+function paperEquityWithoutTransfers(){return E.round(metrics().equity-netWalletTransfers());}
+function levelStatus(){return P.evaluate(state,paperEquityWithoutTransfers());}
 function syncLevel(){
   var old=state.progress&&Number.isInteger(state.progress.highestLevel)?state.progress.highestLevel:0;
   var status=levelStatus();save();
@@ -102,7 +105,7 @@ function levelPage(){
 
 
 function seedInvite(){if(window.crypto&&window.crypto.getRandomValues){var arr=new Uint8Array(5);window.crypto.getRandomValues(arr);return Array.from(arr).map(function(v){return v.toString(16).padStart(2,"0");}).join("").toUpperCase();}return Math.random().toString(36).slice(2,10).toUpperCase();}
-C.ensure(state,Date.now(),seedInvite());save();
+C.ensure(state,Date.now(),seedInvite());W.normalize(state);save();
 var inviteFromLink = new URLSearchParams(window.location.search).get("ref");
 if(inviteFromLink && !/^NOVA-[A-Z0-9]{1,8}$/.test(inviteFromLink)) inviteFromLink=null;
 function daily(){return C.progress(state,Date.now());}
@@ -150,8 +153,67 @@ function teamPage(){
 }
 function passPage(){return layout(battlePass()+lessons(),levelCard()+'<section class="panel"><div class="sec-title">Reguli Battle Pass</div><p class="info-copy">Nivelurile de învățare Easy/Pro și permisul de simulări zilnice sunt separate: 20, 40, 60, 80, până la maximum 100 operațiuni zilnice. Până la un backend real, limitele sunt doar locale și se pot manipula.</p><button class="primary" data-action="nav" data-value="team">Vezi echipa și invitațiile →</button></section>');}
 
-function topbar(){return '<header class="header"><div class="brand"><div class="logo">N</div><div><div class="brand-name">NOVA <i>Trade</i></div><div class="brand-sub">Platformă de prezentare</div></div></div><div class="header-right"><span class="demo-badge">● DEMO</span><button class="small-ghost" data-action="guide">Ghid ?</button></div></header><div class="disclaimer">ⓘ <b>SIMULARE</b> — sume și tranzacții exclusiv virtuale. Rezultatele sunt fictive, nu randamente reale.</div>'+marketBanner()+modeSwitcher()+referralInvitation();}
-function wallet(){var m=metrics(),d=E.round(m.equity-E.DEFAULT_BALANCE);return '<section class="panel hero"><div class="label">Active totale • USDT virtuali</div><div class="big-balance">'+fmt(m.equity)+' <small style="font:600 12px DM Sans;color:#bed7f2">USDT</small></div><div style="font-size:12px;font-weight:800" class="'+cssClass(d)+'">'+sign(d)+' USDT <span style="color:#b9d5ef;font-weight:500">față de soldul inițial</span></div>'+progressSvg()+'<div class="hero-metrics"><div><div class="metric-label">Disponibil</div><div class="metric-value">'+fmt(m.available)+'</div></div><div><div class="metric-label">Marjă blocată</div><div class="metric-value">'+fmt(m.frozen)+'</div></div><div><div class="metric-label">PnL deschis</div><div class="metric-value '+cssClass(m.pnl)+'">'+sign(m.pnl)+'</div></div></div></section>';}
+function topbar(){return '<header class="header"><div class="brand"><div class="logo">N</div><div><div class="brand-name">NOVA <i>Trade</i></div><div class="brand-sub">Platformă de prezentare</div></div></div><div class="header-right"><span class="demo-badge">● DEMO</span><button class="small-ghost" data-action="nav" data-value="profile">Profil</button><button class="small-ghost" data-action="guide">Ghid ?</button></div></header><div class="disclaimer">ⓘ <b>SIMULARE</b> — sume și tranzacții exclusiv virtuale. Rezultatele sunt fictive, nu randamente reale.</div>'+marketBanner()+modeSwitcher()+referralInvitation();}
+
+function walletCallout(){
+ var v=W.snapshot(state).balances;
+ return '<section class="panel crypto-callout"><div class="sec-head"><span class="sec-title">₮ Crypto Wallet • DEMO</span><span class="demo-badge">VIRTUAL</span></div>'+
+ '<p class="info-copy">Transferă BTC, ETH, SOL sau USDT <b>demonstrativ</b> în Harvest. Fără transferuri blockchain sau bani reali.</p>'+
+ '<div class="demo-wallet-chip">USDT: '+fmt(v.USDT)+' <span>· BTC: '+v.BTC.toFixed(6)+'</span></div>'+
+ '<button class="primary" data-action="nav" data-value="wallet">Deschide portofelul virtual →</button></section>';
+}
+function cryptoWalletPage(){
+ var w=W.snapshot(state),bal=w.balances,avail=metrics().available;
+ var holdings=W.ASSETS.map(function(asset){
+  var quote=asset==="USDT"?null:M.quote(asset);
+  var value=asset==="USDT"?bal.USDT:(quote?E.round(bal[asset]*quote.bid):null);
+  return '<div class="crypto-holding"><div><b>'+asset+' DEMO</b><small>Sold virtual, netransferabil</small></div>'+
+   '<div><b>'+(asset==="USDT"?fmt(bal[asset]):bal[asset].toFixed(6))+'</b><small>'+(value===null?"Preț indisponibil":fmt(value)+" USD virtuali")+'</small></div></div>';
+ }).join("");
+ var history=w.transfers.slice(0,30).map(function(x){
+  return '<div class="crypto-holding"><div><b>'+(x.direction==="wallet-to-harvest"?"↓ Spre Harvest":"↑ Spre wallet")+'</b>'+
+  '<small>'+dateLabel(x.at)+' · '+x.assetAmount+' '+escapeHtml(x.asset)+' virtual</small></div><div><b>'+fmt(x.net)+' USDT</b>'+
+  '<small>Comision demo '+fmt(x.fee)+'</small></div></div>';
+ }).join("");
+ return layout(
+  '<section class="panel crypto-wallet"><div class="sec-head"><span class="sec-title">Portofel crypto virtual</span><span class="demo-badge">NU E CRYPTO REAL</span></div>'+
+  '<p class="info-copy">Toate sumele sunt fictive. Nu avem adrese de depunere, tranzacții blockchain, retrageri sau posibilitate de convertire în bani reali.</p>'+
+  holdings+'<div class="crypto-total"><span>Harvest disponibil</span><strong>'+fmt(avail)+' USDT DEMO</strong></div></section>'+
+  '<section class="panel"><div class="sec-title">Transferă în Harvest • DEMO</div>'+
+  '<label class="form-label" for="virtual-currency">Din moneda virtuală</label>'+
+  '<select id="virtual-currency" class="field">'+W.ASSETS.map(function(a){return '<option value="'+a+'">'+a+' (DEMO)</option>';}).join("")+'</select>'+
+  '<label class="form-label" for="virtual-amount" style="margin-top:13px">Cantitate</label>'+
+  '<input id="virtual-amount" class="field" inputmode="decimal" type="number" min="0.00000001" step="any" value="100">'+
+  '<p class="info-copy">USDT demo: 1:1. Crypto demo: conversie la bid Kraken + 0,10% comision fictiv. Nu trimite criptomonede reale.</p>'+
+  '<button class="primary" data-action="wallet-in">Transferă în Harvest (virtual)</button></section>',
+  '<section class="panel"><div class="sec-title">Mută înapoi în portofelul DEMO</div>'+
+  '<label class="form-label" for="virtual-back">Suma USDT disponibilă</label>'+
+  '<input id="virtual-back" class="field" inputmode="decimal" type="number" min="0.01" step="0.01" value="50">'+
+  '<p class="info-copy">Doar transfer intern fictiv, NU retragere de fonduri reale.</p>'+
+  '<button class="subtle-btn" data-action="wallet-out">Mută USDT virtual în wallet</button></section>'+
+  '<section class="panel"><div class="sec-head"><span class="sec-title">Istoric transferuri DEMO</span><span class="sec-caption">'+w.transfers.length+'</span></div>'+
+  (history||'<div class="empty">Încă nu ai transferuri demonstrative.</div>')+'</section>');
+}
+function walletIn(){
+ if(pending)return notify("Așteaptă finalizarea operațiunii PAPER.");
+ try{
+  var asset=$("virtual-currency").value,qty=Number($("virtual-amount").value);
+  var q=asset==="USDT"?null:M.quote(asset);
+  var result=W.transferToHarvest(state,asset,qty,q);
+  state=result.state;save();
+  notify("+"+fmt(result.transfer.net)+" USDT virtuali în Harvest. Nu s-au depus bani reali.");
+ }catch(err){notify(err.message);}
+}
+function walletOut(){
+ if(pending)return notify("Așteaptă finalizarea operațiunii PAPER.");
+ try{
+  var result=W.transferBack(state,Number($("virtual-back").value));
+  state=result.state;save();
+  notify(fmt(result.transfer.net)+" USDT transferați în portofelul DEMO. Nu reprezintă retragere.");
+ }catch(err){notify(err.message);}
+}
+
+function wallet(){var m=metrics(),d=E.round(paperEquityWithoutTransfers()-E.DEFAULT_BALANCE);return '<section class="panel hero"><div class="label">Active totale • USDT virtuali</div><div class="big-balance">'+fmt(m.equity)+' <small style="font:600 12px DM Sans;color:#bed7f2">USDT</small></div><div style="font-size:12px;font-weight:800" class="'+cssClass(d)+'">'+sign(d)+' USDT <span style="color:#b9d5ef;font-weight:500">rezultat PAPER fără transferuri de portofel</span></div>'+progressSvg()+'<div class="hero-metrics"><div><div class="metric-label">Disponibil</div><div class="metric-value">'+fmt(m.available)+'</div></div><div><div class="metric-label">Marjă blocată</div><div class="metric-value">'+fmt(m.frozen)+'</div></div><div><div class="metric-label">PnL deschis</div><div class="metric-value '+cssClass(m.pnl)+'">'+sign(m.pnl)+'</div></div></div></section>';}
 function harvest(){
  var pct=pending?Math.min(99,100*(Date.now()-busyStarted)/2100):0,
  q=M.quote("BTC"),mayRun=!pending&&!!q&&C.canTrade(state,Date.now());
@@ -195,16 +257,17 @@ return '<div class="history-row"><div class="hist-icon">'+(op?"↘":"↗")+'</di
 function history(full){return '<section class="panel"><div class="sec-head"><span class="sec-title">Account Details • Istoric</span>'+(full?'<span class="sec-caption">'+state.ledger.length+' înregistrări</span>':'<button class="subtle-btn" data-action="nav" data-value="history">Vezi toate →</button>')+'</div>'+(full?'<div class="tabs" style="margin-bottom:13px">'+[["all","Toate"],["open","Deschideri"],["close","Închideri"]].map(function(x){return '<button class="tab '+(filter===x[0]?"selected":"")+'" data-action="filter" data-value="'+x[0]+'">'+x[1]+'</button>';}).join("")+'</div><label class="form-label" for="filter-date">Data</label><input class="date-filter" id="filter-date" type="date" value="'+escapeHtml(filterDate)+'" />':"")+records(full?150:5)+'</section>';}
 function form(){return '<section class="panel"><div class="sec-head"><span class="sec-title">Trading manual</span><span class="demo-badge">● SIMULAT</span></div><label class="form-label">Pereche</label><div class="tabs">'+["BTC","ETH","SOL"].map(function(x){return '<button class="tab '+(pair===x?"selected":"")+'" data-action="asset" data-value="'+x+'">'+x+'/USDT</button>';}).join("")+'</div><div class="form-group"><div class="side-buttons"><button class="side-btn long '+(side==="LONG"?"active":"")+'" data-action="side" data-value="LONG">↗ Long<small>Cumpărare virtuală</small></button><button class="side-btn short '+(side==="SHORT"?"active":"")+'" data-action="side" data-value="SHORT">↘ Short<small>Vânzare virtuală</small></button></div></div><div class="form-group"><label class="form-label" for="manual-amount">Marjă demo (USDT)</label><input id="manual-amount" class="field" type="number" min="1" step="1" inputmode="decimal" value="'+escapeHtml(manualMargin)+'"></div><div class="form-group"><label class="form-label">Levier</label><div class="tabs">'+[1,2,3,5,10].map(function(x){return '<button class="tab '+(lever===x?"selected":"")+'" data-action="lever" data-value="'+x+'">'+x+'x</button>';}).join("")+'</div></div><div style="margin-top:14px"><div class="order-row"><span class="muted">Preț Kraken (USD)</span><strong>'+(M.quote(pair)?fmt(price(pair)):"—")+'</strong></div><div class="order-row"><span class="muted">Valoare noțională</span><strong id="notional">'+fmt((Number(manualMargin)||0)*lever)+' USDT</strong></div><div class="order-row"><span class="muted">Comision deschidere</span><strong id="orderfee">'+fmt(E.round((Number(manualMargin)||0)*lever*E.FEE_RATE))+' USDT</strong></div><div class="order-row"><span class="muted">Disponibil virtual</span><strong>'+fmt(metrics().available)+' USDT</strong></div></div><button class="primary" style="margin-top:16px" data-action="manual">Deschide '+side+' DEMO</button><p class="info-copy">Pozițiile manuale rămân deschise până apeși Închide. Nu sunt ordine pe piețe financiare.</p></section>';}
 function profile(){var m=metrics(),wins=state.executions.filter(function(x){return x.pnl>0;}).length;
-return '<div class="page"><div class="column"><section class="panel crypto-card"><div class="sec-head"><span class="sec-title">Crypto • abonamente NOVA</span><span class="mini-tag">ÎN PLAN</span></div><p class="info-copy">Vom putea accepta crypto ca metodă de <b>plată pentru servicii educaționale reale</b>, după verificarea unui procesator autorizat și implementarea facturilor/refundurilor.</p><p class="info-copy"><b>Nu acceptăm depuneri pentru Harvest, trading virtual, bonusuri din recrutare sau promisiuni de randament.</b> Nu există momentan adresă de depunere ori transfer în această aplicație.</p></section><section class="panel"><div class="sec-head"><span class="sec-title">Profil demonstrativ</span><span class="demo-badge">VIRTUAL</span></div><div class="order-row"><span>Capital inițial</span><strong>5.000,00 USDT</strong></div><div class="order-row"><span>Capital virtual actual</span><strong>'+fmt(m.equity)+' USDT</strong></div><div class="order-row"><span>Tranzacții închise</span><strong>'+state.executions.length+'</strong></div><div class="order-row"><span>Închideri profitabile</span><strong>'+wins+'</strong></div><div class="order-row"><span>Rezultat net demo</span><strong class="'+cssClass(m.equity-5000)+'">'+sign(m.equity-5000)+' USDT</strong></div><button data-action="reset" class="subtle-btn" style="width:100%;margin-top:17px;padding:13px">↺ Resetează contul virtual</button></section><section class="panel"><div class="sec-title">Cum prezint aplicația?</div><ol class="guide-steps"><li><span class="stepnum">1</span>Așteaptă cotația Kraken și verifică spread-ul.</li><li><span class="stepnum">2</span>Apasă Harvest și arată animația de circa 2 secunde.</li><li><span class="stepnum">3</span>Prezintă soldul și cele două rânduri din Istoric.</li><li><span class="stepnum">4</span>Explică apoi modul Long / Short manual.</li></ol><button class="primary" data-action="nav" data-value="harvest">Deschide Harvest →</button></section></div><div class="column"><section class="panel"><div class="sec-title">Transparență</div><p class="info-copy">Aplicația este un <b>simulator educațional cu bani virtuali</b>. Butonul Harvest execută tranzacții VIRTUALE la cotații publice Kraken și nu efectuează transferuri sau investiții reale.</p><p class="info-copy">Nu există depuneri, retrageri, exchange-uri, bani investiți, randamente promise ori recomandări financiare. Cotațiile sunt generate matematic și nu reprezintă prețuri de piață.</p><p class="info-copy">Tranzacționarea reală, în special cu levier, presupune riscuri de pierdere semnificativă.</p></section>'+history(false)+'</div></div>';}
+return '<div class="page"><div class="column"><section class="panel crypto-card"><div class="sec-head"><span class="sec-title">Crypto • abonamente NOVA</span><span class="mini-tag">ÎN PLAN</span></div><p class="info-copy">Vom putea accepta crypto ca metodă de <b>plată pentru servicii educaționale reale</b>, după verificarea unui procesator autorizat și implementarea facturilor/refundurilor.</p><p class="info-copy"><b>Nu acceptăm depuneri pentru Harvest, trading virtual, bonusuri din recrutare sau promisiuni de randament.</b> Nu există momentan adresă de depunere ori transfer în această aplicație.</p></section><section class="panel"><div class="sec-head"><span class="sec-title">Profil demonstrativ</span><span class="demo-badge">VIRTUAL</span></div><div class="order-row"><span>Capital inițial</span><strong>5.000,00 USDT</strong></div><div class="order-row"><span>Capital virtual actual</span><strong>'+fmt(m.equity)+' USDT</strong></div><div class="order-row"><span>Tranzacții închise</span><strong>'+state.executions.length+'</strong></div><div class="order-row"><span>Închideri profitabile</span><strong>'+wins+'</strong></div><div class="order-row"><span>Rezultat net demo</span><strong class="'+cssClass(m.equity-5000)+'">'+sign(m.equity-5000)+' USDT</strong></div><button data-action="reset" class="subtle-btn" style="width:100%;margin-top:17px;padding:13px">↺ Resetează contul virtual</button></section><section class="panel"><div class="sec-title">Cum prezint aplicația?</div><ol class="guide-steps"><li><span class="stepnum">1</span>Așteaptă cotația Kraken și verifică spread-ul.</li><li><span class="stepnum">2</span>Apasă Harvest și arată animația de circa 2 secunde.</li><li><span class="stepnum">3</span>Prezintă soldul și cele două rânduri din Istoric.</li><li><span class="stepnum">4</span>Explică apoi modul Long / Short manual.</li></ol><button class="primary" data-action="nav" data-value="harvest">Deschide Harvest →</button></section></div><div class="column"><section class="panel"><div class="sec-title">Transparență</div><p class="info-copy">Aplicația este un <b>simulator educațional cu bani virtuali</b>. Butonul Harvest execută tranzacții VIRTUALE la cotații publice Kraken și nu efectuează transferuri sau investiții reale.</p><p class="info-copy">Nu există depuneri, retrageri, exchange-uri, bani investiți, randamente promise ori recomandări financiare. Prețurile Kraken sunt cotații publice reale, însă ordinele și banii sunt exclusiv virtuali.</p><p class="info-copy">Tranzacționarea reală, în special cu levier, presupune riscuri de pierdere semnificativă.</p></section>'+history(false)+'</div></div>';}
 function layout(a,b){return '<div class="page"><div class="column">'+a+'</div><div class="column">'+b+'</div></div>';}
 function main(){
 switch(tab){
+case "wallet":return cryptoWalletPage();
 case "battlepass":return passPage();
 case "team":return teamPage();
 case "home":
   return isPro()
-    ? layout(wallet()+chart()+positionPanel(),form()+levelCard()+history(false))
-    : layout(wallet()+harvest()+levelCard()+stats()+history(false),markets()+positionPanel()+proGate());
+    ? layout(wallet()+walletCallout()+chart()+positionPanel(),form()+levelCard()+history(false))
+    : layout(wallet()+walletCallout()+harvest()+levelCard()+stats()+history(false),markets()+positionPanel()+proGate());
 case "harvest":return layout(wallet()+harvest()+stats(),levelCard()+history(false)+positionPanel());
 case "markets":return layout(chart()+markets(),(isPro()?form():proGate())+levelCard()+positionPanel());
 case "trade":return isPro()?layout(chart()+positionPanel(),form()):layout(chart()+markets(),proGate()+levelCard());
@@ -214,7 +277,7 @@ case "levels":return levelPage();
 case "profile":return profile();
 default:return layout(wallet()+harvest(),levelCard()+history(false));
 }}
-function nav(){var items=[["home","⌂","Acasă"],["harvest","✦","Harvest"],["battlepass","✧","Pass"],["team","♧","Echipă"],["profile","♙","Profil"]];return '<nav class="nav" aria-label="Meniu principal">'+items.map(function(x){return '<button class="navbtn '+(tab===x[0]||(tab==="trade"&&x[0]==="markets")?"selected":"")+'" data-action="nav" data-value="'+x[0]+'"><span class="ico">'+x[1]+'</span>'+x[2]+'</button>';}).join("")+'</nav>';}
+function nav(){var items=[["home","⌂","Acasă"],["harvest","✦","Harvest"],["wallet","₮","Wallet"],["battlepass","✧","Pass"],["team","♧","Echipă"]];return '<nav class="nav" aria-label="Meniu principal">'+items.map(function(x){return '<button class="navbtn '+(tab===x[0]||(tab==="trade"&&x[0]==="markets")?"selected":"")+'" data-action="nav" data-value="'+x[0]+'"><span class="ico">'+x[1]+'</span>'+x[2]+'</button>';}).join("")+'</nav>';}
 function render(){var t=toastText?'<div class="toast" role="status">'+escapeHtml(toastText)+'</div>':"";$("app").innerHTML='<main class="layout">'+topbar()+main()+'</main>'+nav()+t;}
 function notify(txt){toastText=txt;render();clearTimeout(timer);timer=setTimeout(function(){toastText="";var t=document.querySelector(".toast");if(t)t.remove();},5000);}
 function go(t){tab=t;render();window.scrollTo(0,0);}
@@ -274,7 +337,7 @@ function closeManual(id){
  }catch(e){notify(e.message);}
 }
 document.addEventListener("click",function(event){var el=event.target.closest("[data-action]");if(!el)return;var a=el.dataset.action,v=el.dataset.value;
-if(a==="nav")go(v);else if(a==="copy-ref"){var link=$("invite-link").value;if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(link).then(function(){notify("Linkul de invitație DEMO a fost copiat.");}).catch(function(){window.prompt("Copiază linkul:",link);});}else window.prompt("Copiază linkul:",link);}else if(a==="dismiss-invite"){inviteFromLink=null;render();}else if(a==="accept-invite"){try{C.joinPreview(state,inviteFromLink,Date.now());save();inviteFromLink=null;notify("Invitația a fost salvată local (DEMO). Nu este o înscriere verificată.");}catch(e){notify(e.message);}}else if(a==="rename-team"){try{C.renameTeam(state,$("team-name").value,Date.now());save();notify("Numele echipei DEMO a fost actualizat.");}catch(e){notify(e.message);}}else if(a==="lesson"){var parts=v.split(":"),result=C.completeLesson(state,parts[0],Number(parts[1]),Date.now());if(result.correct){save();notify(result.alreadyDone?"Lecția era deja completată.":"+30 XP • Lecție completată!");}else notify("Nu este corect. Poți încerca din nou, fără penalizare.");}else if(a==="mode"){try{var status=P.setMode(state,v,metrics().equity);save();go("home");notify("Modul NOVA "+status.mode+" a fost activat.");}catch(e){go("levels");notify(e.message);}}else if(a==="harvest")startHarvest();
+if(a==="nav")go(v);else if(a==="wallet-in")walletIn();else if(a==="wallet-out")walletOut();else if(a==="copy-ref"){var link=$("invite-link").value;if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(link).then(function(){notify("Linkul de invitație DEMO a fost copiat.");}).catch(function(){window.prompt("Copiază linkul:",link);});}else window.prompt("Copiază linkul:",link);}else if(a==="dismiss-invite"){inviteFromLink=null;render();}else if(a==="accept-invite"){try{C.joinPreview(state,inviteFromLink,Date.now());save();inviteFromLink=null;notify("Invitația a fost salvată local (DEMO). Nu este o înscriere verificată.");}catch(e){notify(e.message);}}else if(a==="rename-team"){try{C.renameTeam(state,$("team-name").value,Date.now());save();notify("Numele echipei DEMO a fost actualizat.");}catch(e){notify(e.message);}}else if(a==="lesson"){var parts=v.split(":"),result=C.completeLesson(state,parts[0],Number(parts[1]),Date.now());if(result.correct){save();notify(result.alreadyDone?"Lecția era deja completată.":"+30 XP • Lecție completată!");}else notify("Nu este corect. Poți încerca din nou, fără penalizare.");}else if(a==="mode"){try{var status=P.setMode(state,v,metrics().equity);save();go("home");notify("Modul NOVA "+status.mode+" a fost activat.");}catch(e){go("levels");notify(e.message);}}else if(a==="harvest")startHarvest();
 else if(a==="pair"){pair=v;go("trade");}
 else if(a==="asset"){pair=v;render();}
 else if(a==="frame"){frame=Number(v);render();}
@@ -283,7 +346,7 @@ else if(a==="lever"){lever=Number(v);render();}
 else if(a==="manual")openManual();
 else if(a==="close")closeManual(v);
 else if(a==="filter"){filter=v;render();}
-else if(a==="reset"){if(pending)return notify("Așteaptă finalizarea Harvest.");if(window.confirm("Resetezi soldul virtual la 5.000 USDT și ștergi istoricul demo?")){state=E.startingState();C.ensure(state,Date.now(),seedInvite());syncLevel();tab="home";notify("Contul demonstrativ a fost resetat.");}}
+else if(a==="reset"){if(pending)return notify("Așteaptă finalizarea Harvest.");if(window.confirm("Resetezi soldul virtual la 5.000 USDT și ștergi istoricul demo?")){state=E.startingState();W.normalize(state);C.ensure(state,Date.now(),seedInvite());syncLevel();tab="home";notify("Contul demonstrativ a fost resetat.");}}
 else if(a==="guide")window.alert("Ghid demo:\n1. Așteaptă conexiunea LIVE Kraken. Nu există profit prestabilit.\n2. Apasă Harvest. Așteaptă 2 secunde.\n3. Arată soldul nou și perechea cumpărare/vânzare din Istoric.\n4. Testează Long/Short manual.\n\nAtenție: Nu există fonduri sau tranzacții reale.");});
 document.addEventListener("input",function(event){if(event.target.id==="harvest-amount")margin=event.target.value;else if(event.target.id==="manual-amount"){manualMargin=event.target.value;var n=$("notional"),f=$("orderfee"),amount=Number(manualMargin)||0;if(n)n.textContent=fmt(amount*lever)+" USDT";if(f)f.textContent=fmt(E.round(amount*lever*E.FEE_RATE))+" USDT";}});
 document.addEventListener("change",function(event){if(event.target.id==="filter-date"){filterDate=event.target.value;render();}});
