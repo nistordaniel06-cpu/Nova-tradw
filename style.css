@@ -122,3 +122,15 @@ input[type=number]::-webkit-inner-spin-button{appearance:none}
 .invite-banner strong{font-size:13px}.invite-banner p{font-size:11px;line-height:1.6;color:#c5e8e4;margin:8px 0}.invite-banner button{background:#187e83;border-radius:9px;margin-right:8px;margin-top:5px;padding:8px 10px;font-weight:800;font-size:11px}
 .invite-banner button:last-child{background:#234954;color:#cadbe3}
 @media(max-width:480px){.pass-levels{grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}.pass-level{padding:8px 3px}.pass-level strong{font-size:9px}.pass-level small{font-size:8px}.team-code{align-items:start;flex-direction:column}.pass-big{font-size:16px}.daily-band{align-items:start;flex-direction:column}.daily-band button{align-self:flex-end}}
+
+
+/* Kraken reference data and paper trading integrity */
+.market-feed-banner{margin-bottom:13px;border-radius:11px;padding:11px 13px;font-size:12px;font-weight:800;line-height:1.6}
+.market-feed-banner small{display:block;font-size:10px;font-weight:500;margin-top:3px}
+.market-feed-banner.is-live{color:#96ffe2;background:#073a34;border:1px solid #236d62}
+.market-feed-banner.is-live small{color:#aedbcc}
+.market-feed-banner.is-offline{color:#ffdba6;background:#3b2d1d;border:1px solid #836243}
+.market-feed-banner.is-offline small{color:#d7bb9a}
+.quote-mini{display:flex;justify-content:space-between;flex-wrap:wrap;gap:7px;background:#082d29;border:1px solid #28594a;border-radius:10px;padding:10px;margin-top:12px;color:#b6e9d8;font-size:11px}
+.quote-mini b{color:#f2fffa}
+.crypto-card{border-color:#315775;background:linear-gradient(140deg,#102c48,#0d2238)}
