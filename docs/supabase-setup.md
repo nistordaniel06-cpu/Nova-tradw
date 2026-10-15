@@ -1,5 +1,30 @@
 # NOVA Online: Supabase Auth + echipe reale (etapa de integrare)
 
+## Stadiul real — 15 octombrie 2026
+
+- **Proiect creat și activ:** NOVA Trade, ref `ddhilzlkxmsgmggftwmy`, regiune `eu-central-1`.
+- **Migration aplicată:** `nova_auth_teams` (tabele `nova_profiles`, `nova_teams`, `nova_referrals`, cu RLS).
+- **Configurare browser:** `config.js` conține doar URL-ul și cheia publishable (publică), nu chei secrete.
+- **Preview conectat:** https://nova-trade-harvest-7fe7no88s-service-mlms-projects.vercel.app
+- **Neconfigurat automat:** Authentication > URL Configuration; trebuie actualizat manual în Dashboard.
+- **Netestat încă:** înscriere prin email real, confirmare email, invitații între două conturi reale. Nu le declara funcționale până la probe.
+
+### Acțiune în Supabase Dashboard
+
+Deschide https://supabase.com/dashboard/project/ddhilzlkxmsgmggftwmy/auth/url-configuration și setează:
+
+- **Site URL:** `https://nova-trade-harvest.vercel.app` (adresa stabilă după aprobarea merge-ului).
+- **Redirect URLs:** `https://nova-trade-harvest-7fe7no88s-service-mlms-projects.vercel.app` și `https://nova-trade-harvest.vercel.app`.
+
+Apoi verifică **Authentication > Providers > Email**: providerul Email să fie activ și confirmarea emailului obligatorie. Nu folosi `localhost` ca Site URL de producție.
+
+Test manual: accesează preview, apasă `Cont online`, creează două conturi diferite (cu emailuri reale), confirmă prin email, loghează-te, creează echipa A, invită contul B și verifică vizibilitatea membrului în contul A doar cu consimțământ.
+
+**Siguranță:** linterul Supabase semnalează intenționat funcțiile RPC `SECURITY DEFINER` acordate doar rolului `authenticated` și RLS fără politici directe pe `nova_referrals` (acces numai prin funcții verificate). Revizuiește aceste excepții înainte de deschiderea publică.
+
+---
+
+
 > IMPORTANT: Acest PR pregătește codul, NU modifică nicio bază de date existentă. Nu este activă încă înregistrarea reală. Harvest/Long/Short/XP/sold rămân exclusiv simulări locale.
 
 ## Pași de activare (după aprobarea proiectului și a costului Supabase)
