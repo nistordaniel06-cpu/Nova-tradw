@@ -156,10 +156,11 @@ begin
   if exists (select 1 from public.nova_referrals r where r.child_id=v_child) then
     raise exception 'Ai deja un invitator. Poți părăsi echipa înainte de altă invitație';
   end if;
-  -- Lock advisory relation for both accounts to serialize conflicting
-  -- join operations (including two users inviting each other simultaneously).
+  -- Serialize writes to the mentorship graph, avoiding cycles even for
+  -- simultaneous joins involving three or more distinct user accounts.
+  -- Small community scale: one short transaction-level graph lock is sufficient.
   perform pg_catalog.pg_advisory_xact_lock(
-    pg_catalog.hashtextextended(least(v_child,v_parent)::text || ':' || greatest(v_child,v_parent)::text, 0));
+    pg_catalog.hashtextextended('nova_referral_graph', 0));
   if exists (select 1 from public.nova_referrals r where r.child_id=v_child) then
     raise exception 'Ai deja un invitator';
   end if;
