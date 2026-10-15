@@ -19,5 +19,8 @@ jobs:
           node --check app.js
           node --check progression.js
           node --check community.js
+          node --check account.js
+          node --check online-ui.js
+          node --check config.js
       - name: Run simulation engine tests
-        run: node --test tests.test.js
+        run: node --test tests.test.js online.test.js
