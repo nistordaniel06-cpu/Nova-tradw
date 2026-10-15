@@ -95,8 +95,9 @@ async function join(code){
  if(!isValidCode(code))throw Error("Codul online trebuie să fie un UUID valid dintr-un link al unei echipe verificate.");
  return rpc("nova_join_team",{p_code:code.trim()});
 }
+async function getAccessToken(){if(!client)return null;const r=await client.auth.getSession();if(r.error)return null;return r.data.session?.access_token||null;}
 window.NovaAccount={
- snapshot:snapshot,initialize:initialize,refresh:refresh,signup:signup,login:login,logout:logout,
+ snapshot:snapshot,getAccessToken:getAccessToken,initialize:initialize,refresh:refresh,signup:signup,login:login,logout:logout,
  createTeam:function(name){return rpc("nova_create_team",{p_name:name});},
  renameTeam:function(name){return rpc("nova_rename_team",{p_name:name});},
  joinTeam:join,

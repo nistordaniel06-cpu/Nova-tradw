@@ -26,6 +26,10 @@ jobs:
           node --check wallet.js
           node --check exchange.js
           node --check real-crypto-ui.js
+          node --check kraken-connect-ui.js
+          node --check lib/kraken-oauth.js
+          node --check api/kraken/connect.js
+          node --check api/kraken/callback.js
           node --check api/market.js
       - name: Run simulation engine tests
-        run: node --test tests.test.js online.test.js market.test.js wallet.test.js exchange.test.js
+        run: node --test tests.test.js online.test.js market.test.js wallet.test.js exchange.test.js kraken-oauth.test.js
