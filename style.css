@@ -63,3 +63,34 @@ input[type=number]::-webkit-inner-spin-button{appearance:none}
 @media(max-width:760px){.page{display:flex;flex-direction:column}.column{width:100%}.brand-name{font-size:18px}.brand-sub{font-size:10px}.panel{padding:15px}.hero{padding:19px}.statbox{min-height:86px}}
 @media(max-width:380px){.layout{padding-inline:11px}.small-ghost{padding:6px}.hero-metrics .metric-value{font-size:12px}.statvalue{font-size:17px}.demo-badge{font-size:9px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+
+/* NOVA Easy / Pro earned progression */
+.mode-toolbar{display:flex;justify-content:space-between;gap:10px;align-items:center;margin:-3px 0 15px}
+.mode-pills{display:flex;gap:5px;border:1px solid #28485f;background:#0a1a2c;border-radius:12px;padding:5px;min-width:0}
+.mode-button{background:transparent;color:#8daec4;font-weight:800;padding:10px 14px;font-size:12px;white-space:nowrap;border-radius:9px}
+.mode-button.chosen{background:#1a90f0;color:#fff;box-shadow:0 4px 16px #1686db29}
+.mode-button.pro-selected{background:linear-gradient(110deg,#2372d3,#6d5cdd)}
+.mode-level{background:#102940;border:1px solid #26485f;border-radius:10px;font-size:11px;color:#b9d8ed;font-weight:800;padding:11px 12px;white-space:nowrap}
+.level-card{border-color:#274e66;background:radial-gradient(circle at 100% 0%,#164e6655,transparent 43%),linear-gradient(145deg,#13283d,#0c1c2d)}
+.level-current{display:flex;gap:11px;align-items:center;padding:12px;border:1px solid #31536b;border-radius:12px;background:#15334b}
+.level-crown{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(120deg,#067ee8,#2155b2);font-size:27px;color:#d7faff;flex:none}
+.level-title{font:800 15px "Space Grotesk";color:#f5faff}.level-sub{color:#9fc2d4;font-size:11px;margin-top:3px}
+.level-xp{margin-left:auto;font:700 12px "Space Grotesk";color:#86e4ff;white-space:nowrap}
+.level-next{font-size:12px;color:#bad5e8;margin:13px 0 6px}.level-next b{color:#f4fbff}
+.level-progress-label{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;color:#9db6cb;margin:13px 0 6px}
+.level-progress-label b{font-weight:800;color:#e2f3fb;text-align:right}
+.level-progress{height:7px;border-radius:99px;background:#193c51;overflow:hidden}
+.level-progress span{display:block;background:linear-gradient(90deg,#137ce9,#21d1de);height:100%;border-radius:99px;transition:width .2s}
+.level-todo{font-size:11px;color:#b2c7da;line-height:1.5;margin-top:13px}
+.level-foot{font-size:10px;color:#7eabbe;border-top:1px solid #2a4a60;margin-top:14px;padding-top:10px}
+.level-step{display:flex;align-items:flex-start;gap:10px;padding:14px 2px;border-top:1px solid #2a3f52}
+.level-step:first-child{margin-top:12px}
+.level-step-num{width:25px;height:25px;border-radius:50%;display:grid;place-items:center;background:#264359;color:#9ebad0;font-weight:900;flex:none;font-size:11px}
+.level-step.unlocked .level-step-num{background:#03694c;color:#a9ffe6}
+.level-step-main{flex:1}.level-step-main strong{font-size:12px;color:#d9eafb}
+.level-step-main p{font-size:11px;color:#8aacc0;margin:4px 0 5px}.level-step-main small{color:#809eb4;font-size:10px;line-height:1.5}
+.level-step-state{color:#8aa4b7;font-size:10px;white-space:nowrap}.level-step.unlocked .level-step-state{color:#57e2b3}
+.level-mode-compare{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:13px 0}
+.level-mode-compare div{background:#143049;border:1px solid #294b65;border-radius:12px;padding:12px}
+.level-mode-compare b{color:#e5f5ff}.level-mode-compare p{font-size:11px;color:#98b5c7;line-height:1.6;margin:8px 0 0}
+@media(max-width:480px){.mode-toolbar{gap:6px}.mode-button{font-size:10px;padding:9px 10px}.mode-level{font-size:10px;padding:10px 8px}.navbtn{font-size:9px}.level-mode-compare{grid-template-columns:1fr}}
