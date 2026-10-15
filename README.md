@@ -6,6 +6,16 @@ Demo de prezentare, exclusiv cu bani virtuali.
 
 Versiunea nouă se află în PR-ul `feature/live-market-paper-trading`, până la aprobarea merge-ului. **Nu acceptăm crypto pentru depozite sau investiții**. Posibilitatea de a plăti un abonament educațional cu un procesator crypto este doar planificată. Citește `docs/paper-trading-crypto.md`.
 
+## Portofel crypto virtual → Harvest
+
+- Portofel fictiv USDT/BTC/ETH/SOL cu solduri pentru prezentare, complet separat de fondurile reale.
+- Transfer demo BTC/ETH/SOL la cotații Kraken bid cu taxă fictivă 0,10%; USDT demo 1:1.
+- Mutarea soldului virtual disponibil înapoi în portofelul virtual, fără retragere blockchain.
+- Registru transferuri și excluderea alimentărilor din profit, clasamente și progres.
+- **Nu există depuneri crypto reale, retrageri sau colectare de fonduri de la utilizatori.**
+
+Detalii în `docs/virtual-crypto-wallet.md`.
+
 ## Funcționalități
 - Ecran premium pentru telefon, în română
 - Buton **Harvest PAPER**: cumpărare virtuală la ask și vânzare virtuală la bid după aproximativ două secunde, la prețuri de referință Kraken
