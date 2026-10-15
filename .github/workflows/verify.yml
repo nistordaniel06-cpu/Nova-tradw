@@ -17,5 +17,6 @@ jobs:
         run: |
           node --check engine.js
           node --check app.js
+          node --check progression.js
       - name: Run simulation engine tests
         run: node --test tests.test.js
