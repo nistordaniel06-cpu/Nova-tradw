@@ -53,7 +53,7 @@ test("Crypto Real panel opens and exits without writing demo cash or balance",()
  listeners.click({target:{closest(s){return s==="[data-real-open]"?{}:null;}},preventDefault(){stopped=true;}});
  assert.equal(stopped,true);
  assert.match(app.child.innerHTML,/pro\.kraken\.com/);
- assert.match(app.child.innerHTML,/FONDURI/);
+ assert.match(app.child.innerHTML,/Fonduri reale/);
  assert.match(app.child.innerHTML,/Kraken Pro/);
  assert.match(app.child.innerHTML,/NOVA nu primește și nu controlează fonduri/);
  listeners.keydown({key:"Escape"});
