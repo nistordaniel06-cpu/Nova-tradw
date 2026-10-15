@@ -46,3 +46,22 @@ La deblocare nivelul rămâne câștigat chiar dacă equity scade ulterior. Valo
 
 ## Teste
 Rulează `node --check app.js`, `node --check progression.js`, `node --check engine.js` și `node --test tests.test.js`.
+## Comunitate: Battle Pass și echipe (Demo)
+
+- Fiecare cont local primește 20 de tranzacții simulate disponibile pe zi. Nivelurile Battle Pass cresc capacitatea la 40 / 60 / 80 / 100, nu reprezintă un minim obligatoriu.
+- XP pentru maximum primele cinci tranzacții demo închise într-o zi (+15 XP per închidere, maxim 75 XP/zi).
+- Patru micro-lecții cu întrebări (+30 XP o singură dată pentru răspuns corect la fiecare). Utilizatorii pot progresa fără referral.
+- Battle Pass: Rookie (0 XP / 20), Bronze (40 XP / 40), Silver (90 XP / 60), Gold (170 XP / 80), Diamond (280 XP / 100).
+- Cod de invitație demo, link de partajare și acceptare locală în browser. În acest MVP NU există conturi sincronizate, echipe verificate sau membri confirmați.
+- Invitațiile nu acordă bani, XP automat sau avantaje din depunerile ori recrutarea altora.
+- Sezonul actual e demonstrativ și nu are încă dată de încheiere; resetarea contului demo resetează progresul.
+
+### De implementat pentru echipe reale
+1. Auth cu confirmare email și conturi unice, server-side; fără posibilitate ca un utilizator să-și genereze singur „membri validați”.
+2. Tabele cu utilizatori / echipe / invitații și o relație opțională mentor–membru; fără comisioane financiare în lanț.
+3. Acceptarea unei invitații o singură dată, cu verificare și audit server-side; fără recompense pentru depuneri.
+4. Pagina echipei arată doar membri reali verificați care și-au dat consimțământul.
+5. Motorul de cote și XP trebuie mutat pe backend înainte de clasamente, recompense sau abonamente plătite.
+6. Orice sistem de referral comercial viitor poate recompensa numai vânzarea unui produs educațional real, transparent și conform legislației; nu înscrieri / depuneri / investiții.
+
+Teste: `node --check engine.js && node --check progression.js && node --check community.js && node --check app.js && node --test tests.test.js`.
