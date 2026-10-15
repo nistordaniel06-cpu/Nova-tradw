@@ -1,0 +1,32 @@
+/* Distinct third-party real crypto space. Not an NOVA balance or deposit UI. */
+.real-exchange-link{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px;border:1px solid #416689;border-radius:12px;margin:10px 0 15px;background:linear-gradient(105deg,#15354e,#163149)}
+.real-exchange-link strong{display:block;color:#e6f5ff;font-size:13px}
+.real-exchange-link small{display:block;color:#a5bed1;font-size:11px;line-height:1.5;margin-top:4px}
+.real-exchange-link button{flex:none;font-size:11px}
+.nrc-overlay{position:fixed;inset:0;background:#03101dd9;z-index:40}
+.nrc-panel{position:fixed;inset:0 0 0 auto;z-index:41;width:min(100%,480px);background:#091c2e;color:#f0f8ff;box-shadow:-15px 0 50px #000a;border-left:1px solid #2b5577;display:flex;flex-direction:column;font:13px/1.6 "DM Sans",sans-serif}
+.nrc-header{display:flex;align-items:center;justify-content:space-between;padding:16px 19px;border-bottom:1px solid #25465f}
+.nrc-header strong{display:block;font:800 21px "Space Grotesk",sans-serif}.nrc-overline{display:block;font-size:10px;color:#7bd5e3;letter-spacing:1.6px;font-weight:900}
+.nrc-close{border:1px solid #3c5c76;color:#d9effb;border-radius:11px;background:#17364f;font-size:23px;padding:0 12px;min-height:36px}
+.nrc-scroll{flex:1;overflow:auto;padding:15px 17px 42px;overscroll-behavior:contain}
+.nrc-hero{background:radial-gradient(circle at top right,#1a8bb254,transparent 55%),linear-gradient(145deg,#0d3f56,#0d293e);border:1px solid #2d7182;border-radius:17px;padding:19px 17px}
+.nrc-pill{display:inline-block;color:#7cf1e4;background:#103e52;border:1px solid #257783;padding:5px 9px;border-radius:99px;font-size:10px;font-weight:900;letter-spacing:.4px}
+.nrc-hero h2{font:800 25px/1.15 "Space Grotesk";letter-spacing:-.8px;margin:15px 0}
+.nrc-hero p,.nrc-section p{color:#bad6e4;font-size:12px;line-height:1.7}
+.nrc-hero small{display:block;color:#9cc0ce;font-size:10px;margin-top:10px;line-height:1.6}
+.nrc-primary{display:flex;align-items:center;justify-content:space-between;border-radius:12px;color:#fff;background:linear-gradient(100deg,#0a78b3,#00999a);padding:14px;font-size:13px;font-weight:900;margin-top:16px;text-decoration:none}
+.nrc-primary:hover{color:#fff;filter:brightness(1.12)}
+.nrc-split{display:flex;align-items:center;justify-content:space-between;gap:7px;margin:15px 0;padding:13px;border:1px solid #2b4b61;border-radius:12px;background:#122d43}
+.nrc-split>div{flex:1;min-width:0}.nrc-split>div:last-child{text-align:right}
+.nrc-split>span{font-size:19px;color:#6ed6e6}.nrc-split strong{display:block;font-size:12px}.nrc-split small{display:block;font-size:10px;line-height:1.4;color:#9ebdcf;margin-top:4px}
+.nrc-section{border:1px solid #2a4e67;border-radius:14px;padding:16px;margin-bottom:13px;background:#10283b}
+.nrc-section h3{margin:0 0 12px;font:800 15px "Space Grotesk"}
+.nrc-steps{list-style:none;counter-reset:nova-step;margin:0;padding:0}
+.nrc-steps li{counter-increment:nova-step;position:relative;padding:2px 0 14px 36px;border-bottom:1px solid #2a4157;margin-bottom:12px}
+.nrc-steps li::before{content:counter(nova-step);position:absolute;left:0;top:1px;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:#176488;color:#fff;font-weight:900;font-size:11px}
+.nrc-steps b{display:block;font-size:12px}.nrc-steps span{display:block;color:#a7bfce;font-size:11px;margin-top:5px;line-height:1.5}
+.nrc-link{display:flex;align-items:center;justify-content:space-between;margin-top:10px;border-radius:9px;background:#163a52;border:1px solid #31596f;color:#a8e8fa;padding:11px 12px;font-size:11px;font-weight:800;text-decoration:none}
+.nrc-link:hover{color:#e4fcff}
+.nrc-safe{border-color:#316875;background:linear-gradient(135deg,#0e3d46,#112d3b)}
+.nrc-secondary{width:100%;padding:14px;background:#153d54;color:#eaf9ff;font-size:12px;font-weight:800;border-radius:12px;border:1px solid #2d617c}
+@media(max-width:420px){.real-exchange-link{flex-direction:column;align-items:stretch}.nrc-panel{width:100%}.nrc-hero h2{font-size:23px}.nrc-scroll{padding:12px 13px 32px}}

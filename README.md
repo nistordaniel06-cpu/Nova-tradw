@@ -2,11 +2,25 @@
 
 Demo de prezentare, exclusiv cu bani virtuali.
 
+## Sprint 1: Kraken Real Quotes / Paper Trading
+
+Versiunea nouă se află în PR-ul `feature/live-market-paper-trading`, până la aprobarea merge-ului. **Nu acceptăm crypto pentru depozite sau investiții**. Posibilitatea de a plăti un abonament educațional cu un procesator crypto este doar planificată. Citește `docs/paper-trading-crypto.md`.
+
+## Portofel crypto virtual → Harvest
+
+- Portofel fictiv USDT/BTC/ETH/SOL cu solduri pentru prezentare, complet separat de fondurile reale.
+- Transfer demo BTC/ETH/SOL la cotații Kraken bid cu taxă fictivă 0,10%; USDT demo 1:1.
+- Mutarea soldului virtual disponibil înapoi în portofelul virtual, fără retragere blockchain.
+- Registru transferuri și excluderea alimentărilor din profit, clasamente și progres.
+- **Nu există depuneri crypto reale, retrageri sau colectare de fonduri de la utilizatori.**
+
+Detalii în `docs/virtual-crypto-wallet.md`.
+
 ## Funcționalități
 - Ecran premium pentru telefon, în română
-- Buton **Harvest**: tranzacție simulată de cumpărare + vânzare după aproximativ două secunde
-- Scenarii explicite **Profit demonstrativ** / **Pierdere demonstrativă** (NU predicții ale pieței)
-- Cont și sold în USDT fictivi, comision demo, grafic cu prețuri sintetice
+- Buton **Harvest PAPER**: cumpărare virtuală la ask și vânzare virtuală la bid după aproximativ două secunde, la prețuri de referință Kraken
+- Harvest V2: folosește cotații publice Kraken bid/ask; NU permite alegerea artificială a unui profit
+- Sold în USDT virtuali, comision demo, grafic Kraken OHLC (BTC, ETH, SOL) în USD
 - Registru cu toate tranzacțiile în ordinea efectuării, PnL, dată, sold după tranzacție
 - Long/Short manual, închiderea pozițiilor, levier (virtual), resetarea contului
 - Salvare locală în browser prin `localStorage`

@@ -122,3 +122,30 @@ input[type=number]::-webkit-inner-spin-button{appearance:none}
 .invite-banner strong{font-size:13px}.invite-banner p{font-size:11px;line-height:1.6;color:#c5e8e4;margin:8px 0}.invite-banner button{background:#187e83;border-radius:9px;margin-right:8px;margin-top:5px;padding:8px 10px;font-weight:800;font-size:11px}
 .invite-banner button:last-child{background:#234954;color:#cadbe3}
 @media(max-width:480px){.pass-levels{grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}.pass-level{padding:8px 3px}.pass-level strong{font-size:9px}.pass-level small{font-size:8px}.team-code{align-items:start;flex-direction:column}.pass-big{font-size:16px}.daily-band{align-items:start;flex-direction:column}.daily-band button{align-self:flex-end}}
+
+
+/* Kraken reference data and paper trading integrity */
+.market-feed-banner{margin-bottom:13px;border-radius:11px;padding:11px 13px;font-size:12px;font-weight:800;line-height:1.6}
+.market-feed-banner small{display:block;font-size:10px;font-weight:500;margin-top:3px}
+.market-feed-banner.is-live{color:#96ffe2;background:#073a34;border:1px solid #236d62}
+.market-feed-banner.is-live small{color:#aedbcc}
+.market-feed-banner.is-offline{color:#ffdba6;background:#3b2d1d;border:1px solid #836243}
+.market-feed-banner.is-offline small{color:#d7bb9a}
+.quote-mini{display:flex;justify-content:space-between;flex-wrap:wrap;gap:7px;background:#082d29;border:1px solid #28594a;border-radius:10px;padding:10px;margin-top:12px;color:#b6e9d8;font-size:11px}
+.quote-mini b{color:#f2fffa}
+.crypto-card{border-color:#315775;background:linear-gradient(140deg,#102c48,#0d2238)}
+
+/* No-custody, VIRTUAL crypto wallet and internal Harvest transfers */
+.crypto-wallet{background:radial-gradient(circle at 100% 0%,#135064,transparent 46%),linear-gradient(145deg,#112f47,#0b2335)}
+.crypto-holding{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid #2b495e;padding:13px 0}
+.crypto-holding:first-of-type{border-top:0}
+.crypto-holding>div:last-child{text-align:right;white-space:nowrap}
+.crypto-holding b{display:block;font-size:13px;color:#ebfaff}
+.crypto-holding small{display:block;color:#9dbed0;font-size:10px;margin-top:4px}
+.crypto-total{display:flex;justify-content:space-between;gap:12px;margin-top:15px;padding:14px;border:1px solid #2f7186;background:#0d3b51;border-radius:12px;font-size:12px}
+.crypto-total strong{font:800 14px "Space Grotesk",sans-serif;color:#76f6e0}
+.crypto-callout{border-color:#245776}
+.demo-wallet-chip{margin:12px 0;padding:10px 12px;color:#8cf4d4;background:#153b4b;border:1px solid #28677f;border-radius:10px;font:700 12px "Space Grotesk",sans-serif}
+.demo-wallet-chip span{color:#b5dae7}
+.crypto-wallet select.field{appearance:auto}
+@media(max-width:430px){.crypto-holding small{font-size:9px}.crypto-total{flex-direction:column}.crypto-callout .sec-head{gap:6px}}

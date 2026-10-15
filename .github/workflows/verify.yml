@@ -22,5 +22,10 @@ jobs:
           node --check account.js
           node --check online-ui.js
           node --check config.js
+          node --check market.js
+          node --check wallet.js
+          node --check exchange.js
+          node --check real-crypto-ui.js
+          node --check api/market.js
       - name: Run simulation engine tests
-        run: node --test tests.test.js online.test.js
+        run: node --test tests.test.js online.test.js market.test.js wallet.test.js exchange.test.js
