@@ -55,7 +55,7 @@ module.exports=async function handler(req,res){
     }
     return res.status(200).setHeader("Cache-Control","public, s-maxage=8, stale-while-revalidate=4").json({
       source:"Kraken Spot",type:"ticker",asset,pair:PAIRS[asset],currency:"USD",
-      bid,ask,last,open24h:open,volume24h:volume,spread:ask-bid,receivedAt:new Date().toISOString()
+      bid,ask,last,sessionOpen:open,volume24h:volume,spread:ask-bid,receivedAt:new Date().toISOString()
     });
   }catch(e){return res.status(503).setHeader("Cache-Control","no-store").json({error:"Cotația live este indisponibilă. Tranzacțiile sunt temporar blocate.",source:"Kraken Spot"});}
 };
