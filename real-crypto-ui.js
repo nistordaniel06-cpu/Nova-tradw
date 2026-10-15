@@ -42,7 +42,7 @@ function panel(){
 function render(){
  root.innerHTML=(opened?'<div class="nrc-overlay" data-real-close></div><section class="nrc-panel" role="dialog" aria-modal="true" aria-label="Crypto Real extern">'+panel()+'</section>':'');
 }
-function toggle(flag){opened=flag;render();if(flag)document.dispatchEvent(new CustomEvent('nova-kraken-panel-open'));}
+function toggle(flag){opened=flag;render();if(flag&&document.dispatchEvent&&typeof CustomEvent==='function')document.dispatchEvent(new CustomEvent('nova-kraken-panel-open'));}
 document.addEventListener("click",function(e){
  var launch=e.target.closest("[data-real-open]");
  if(launch){e.preventDefault();toggle(true);return;}
