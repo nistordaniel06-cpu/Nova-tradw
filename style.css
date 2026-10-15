@@ -63,3 +63,62 @@ input[type=number]::-webkit-inner-spin-button{appearance:none}
 @media(max-width:760px){.page{display:flex;flex-direction:column}.column{width:100%}.brand-name{font-size:18px}.brand-sub{font-size:10px}.panel{padding:15px}.hero{padding:19px}.statbox{min-height:86px}}
 @media(max-width:380px){.layout{padding-inline:11px}.small-ghost{padding:6px}.hero-metrics .metric-value{font-size:12px}.statvalue{font-size:17px}.demo-badge{font-size:9px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+
+/* NOVA Easy / Pro earned progression */
+.mode-toolbar{display:flex;justify-content:space-between;gap:10px;align-items:center;margin:-3px 0 15px}
+.mode-pills{display:flex;gap:5px;border:1px solid #28485f;background:#0a1a2c;border-radius:12px;padding:5px;min-width:0}
+.mode-button{background:transparent;color:#8daec4;font-weight:800;padding:10px 14px;font-size:12px;white-space:nowrap;border-radius:9px}
+.mode-button.chosen{background:#1a90f0;color:#fff;box-shadow:0 4px 16px #1686db29}
+.mode-button.pro-selected{background:linear-gradient(110deg,#2372d3,#6d5cdd)}
+.mode-level{background:#102940;border:1px solid #26485f;border-radius:10px;font-size:11px;color:#b9d8ed;font-weight:800;padding:11px 12px;white-space:nowrap}
+.level-card{border-color:#274e66;background:radial-gradient(circle at 100% 0%,#164e6655,transparent 43%),linear-gradient(145deg,#13283d,#0c1c2d)}
+.level-current{display:flex;gap:11px;align-items:center;padding:12px;border:1px solid #31536b;border-radius:12px;background:#15334b}
+.level-crown{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(120deg,#067ee8,#2155b2);font-size:27px;color:#d7faff;flex:none}
+.level-title{font:800 15px "Space Grotesk";color:#f5faff}.level-sub{color:#9fc2d4;font-size:11px;margin-top:3px}
+.level-xp{margin-left:auto;font:700 12px "Space Grotesk";color:#86e4ff;white-space:nowrap}
+.level-next{font-size:12px;color:#bad5e8;margin:13px 0 6px}.level-next b{color:#f4fbff}
+.level-progress-label{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;color:#9db6cb;margin:13px 0 6px}
+.level-progress-label b{font-weight:800;color:#e2f3fb;text-align:right}
+.level-progress{height:7px;border-radius:99px;background:#193c51;overflow:hidden}
+.level-progress span{display:block;background:linear-gradient(90deg,#137ce9,#21d1de);height:100%;border-radius:99px;transition:width .2s}
+.level-todo{font-size:11px;color:#b2c7da;line-height:1.5;margin-top:13px}
+.level-foot{font-size:10px;color:#7eabbe;border-top:1px solid #2a4a60;margin-top:14px;padding-top:10px}
+.level-step{display:flex;align-items:flex-start;gap:10px;padding:14px 2px;border-top:1px solid #2a3f52}
+.level-step:first-child{margin-top:12px}
+.level-step-num{width:25px;height:25px;border-radius:50%;display:grid;place-items:center;background:#264359;color:#9ebad0;font-weight:900;flex:none;font-size:11px}
+.level-step.unlocked .level-step-num{background:#03694c;color:#a9ffe6}
+.level-step-main{flex:1}.level-step-main strong{font-size:12px;color:#d9eafb}
+.level-step-main p{font-size:11px;color:#8aacc0;margin:4px 0 5px}.level-step-main small{color:#809eb4;font-size:10px;line-height:1.5}
+.level-step-state{color:#8aa4b7;font-size:10px;white-space:nowrap}.level-step.unlocked .level-step-state{color:#57e2b3}
+.level-mode-compare{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:13px 0}
+.level-mode-compare div{background:#143049;border:1px solid #294b65;border-radius:12px;padding:12px}
+.level-mode-compare b{color:#e5f5ff}.level-mode-compare p{font-size:11px;color:#98b5c7;line-height:1.6;margin:8px 0 0}
+@media(max-width:480px){.mode-toolbar{gap:6px}.mode-button{font-size:10px;padding:9px 10px}.mode-level{font-size:10px;padding:10px 8px}.navbtn{font-size:9px}.level-mode-compare{grid-template-columns:1fr}}
+
+/* Team / referral preview and educational Battle Pass */
+.daily-band{display:flex;align-items:center;justify-content:space-between;gap:9px;background:#0c2938;border:1px solid #225567;border-radius:12px;padding:12px;margin-top:12px}
+.daily-band strong{font:800 13px "Space Grotesk";display:block;color:#d4f8ed}.daily-band small{display:block;color:#a6c9c1;font-size:10px;line-height:1.5;margin-top:4px}
+.daily-band button{white-space:nowrap;font-size:11px;padding:8px 9px;border-radius:9px;background:#123e66;color:#b5e0ff;font-weight:800}
+.pass-panel{background:radial-gradient(circle at 90% 10%,#1687c850,transparent 45%),linear-gradient(140deg,#142c4b,#0b2337)}
+.pass-hero{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid #285276;background:#132f51cc;border-radius:15px;padding:15px}
+.pass-hero h2{margin:3px 0;font:800 28px "Space Grotesk"}.pass-hero p{margin:4px 0 0;font-size:11px;color:#a2bfd3}
+.pass-big{font:800 21px "Space Grotesk";color:#60e3e1;white-space:nowrap}
+.pass-track{height:9px;border-radius:20px;background:#163c57;overflow:hidden;margin-top:16px}.pass-track div{height:100%;background:linear-gradient(90deg,#238afa,#49edd2);border-radius:20px}
+.pass-meta{display:flex;justify-content:space-between;gap:9px;margin:9px 0;color:#a5c1d2;font-size:10px;font-weight:700}
+.pass-levels{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:14px}
+.pass-level{border:1px solid #25425b;border-radius:11px;background:#11283b;padding:10px 5px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:5px}
+.pass-level.active{background:#114f59;border-color:#219a9e}.pass-num{height:24px;width:24px;border-radius:50%;background:#2a455e;display:grid;place-items:center;font-weight:800;font-size:11px}
+.pass-level.active .pass-num{background:#0bb08c;color:#fff}.pass-level strong{font-size:10px}.pass-level small{color:#a2b5c8;font-size:9px;line-height:1.3}
+.lesson{border-top:1px solid #284257;padding:15px 0}.lesson:first-of-type{border-top:none}
+.lesson-top{display:flex;justify-content:space-between;gap:7px}.lesson-top strong{font-size:13px}.lesson-top small{font-size:10px;color:#9fb5c8;display:block}
+.lesson-question{margin:12px 0 8px;font-size:12px;color:#c0d5e6}
+.lesson-options{display:grid;gap:7px}.lesson-answer{background:#193249;border:1px solid #2b5268;border-radius:9px;color:#dfebf7;text-align:left;padding:11px 12px;font-size:11px;font-weight:700}
+.lesson-answer:hover{border-color:#2fa9d7;background:#1b4160}
+.team-code{display:flex;justify-content:space-between;align-items:center;gap:10px;border-radius:11px;background:#173a50;border:1px dashed #2d7eb9;padding:13px;margin:18px 0}
+.team-code small{font-size:10px;color:#b0cddc}.team-code strong{font:800 17px "Space Grotesk";color:#7ad7ff;white-space:nowrap}
+.team-tree{position:relative;display:grid;gap:10px;margin-top:19px}.team-node{border:1px solid #3b6784;background:#184665;border-radius:11px;padding:13px;display:flex;align-items:center;justify-content:space-between;gap:7px}
+.team-node b{font-size:12px;color:#e5f8ff}.team-node span{font-size:11px;color:#b8d8e8;text-align:right}.team-node.secondary-node{margin-left:18px;background:#102c42;border-color:#25465c}
+.invite-banner{border:1px solid #319b97;border-radius:14px;background:#0d493fbf;padding:12px;margin-bottom:13px}
+.invite-banner strong{font-size:13px}.invite-banner p{font-size:11px;line-height:1.6;color:#c5e8e4;margin:8px 0}.invite-banner button{background:#187e83;border-radius:9px;margin-right:8px;margin-top:5px;padding:8px 10px;font-weight:800;font-size:11px}
+.invite-banner button:last-child{background:#234954;color:#cadbe3}
+@media(max-width:480px){.pass-levels{grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}.pass-level{padding:8px 3px}.pass-level strong{font-size:9px}.pass-level small{font-size:8px}.team-code{align-items:start;flex-direction:column}.pass-big{font-size:16px}.daily-band{align-items:start;flex-direction:column}.daily-band button{align-self:flex-end}}
