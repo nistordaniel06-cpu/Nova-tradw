@@ -105,7 +105,7 @@ case "trade":return isPro()?layout(chart()+positionPanel(),form()):layout(chart(
 case "positions":return layout(wallet()+positionPanel(),(isPro()?form():proGate())+levelCard());
 case "history":return layout(wallet()+history(true),levelCard()+stats());
 case "levels":return levelPage();
-case "profile":return profile().replace('</div></div>',levelCard()+'</div></div>');
+case "profile":return profile();
 default:return layout(wallet()+harvest(),levelCard()+history(false));
 }}
 function nav(){var items=[["home","⌂","Acasă"],["markets","▥","Piețe"],["harvest","✦","Harvest"],["history","≡","Istoric"],["levels","◇","Nivel"],["profile","♙","Profil"]];return '<nav class="nav" aria-label="Meniu principal">'+items.map(function(x){return '<button class="navbtn '+(tab===x[0]||(tab==="trade"&&x[0]==="markets")?"selected":"")+'" data-action="nav" data-value="'+x[0]+'"><span class="ico">'+x[1]+'</span>'+x[2]+'</button>';}).join("")+'</nav>';}
