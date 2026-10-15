@@ -206,17 +206,16 @@ end;
 $$;
 
 create or replace function public.nova_my_parent()
-returns table(team_name text, parent_display_name text, share_enabled boolean)
+returns table(team_name text, sharing_enabled boolean)
 language plpgsql security definer set search_path = ''
 as $$
 declare v_id uuid;
 begin
   v_id := public.nova_require_verified();
   return query
-    select t.name, p.display_name, r.share_display_name
+    select t.name, r.share_display_name
     from public.nova_referrals r
       join public.nova_teams t on t.owner_id=r.parent_id
-      join public.nova_profiles p on p.id=r.parent_id
     where r.child_id=v_id;
 end;
 $$;
