@@ -1,7 +1,8 @@
 /* NOVA Trade presentation frontend: simulations only, NO live markets or real payments. */
 (function(){
 "use strict";
-var E=window.NovaEngine, P=window.NovaProgress;
+var E=window.NovaEngine, P=window.NovaProgress, C=window.NovaCommunity;
+if(!C){document.body.textContent="Modul comunitate și Battle Pass nu s-a încărcat.";return;}
 if(!P){document.body.textContent="Modul de progres nu s-a încărcat.";return;}
 if(!E){document.body.textContent="Eroare: motorul demonstrativ lipsește.";return;}
 var STORE="nova-trade-harvest-demo-v2";
@@ -70,10 +71,60 @@ function levelPage(){
   '<section class="panel"><div class="sec-title">Comunitate, nu piramidă financiară</div><p class="info-copy">Un eventual program de recomandări poate recompensa doar promovarea unor abonamente educaționale efectiv vândute, transparent și fără obligație de recrutare. Nu distribuim depuneri către nivelurile superioare și nu promitem câștiguri.</p></section>');
 }
 
-function topbar(){return '<header class="header"><div class="brand"><div class="logo">N</div><div><div class="brand-name">NOVA <i>Trade</i></div><div class="brand-sub">Platformă de prezentare</div></div></div><div class="header-right"><span class="demo-badge">● DEMO</span><button class="small-ghost" data-action="guide">Ghid ?</button></div></header><div class="disclaimer">ⓘ <b>SIMULARE</b> — sume și tranzacții exclusiv virtuale. Rezultatele sunt fictive, nu randamente reale.</div>'+modeSwitcher();}
+
+function seedInvite(){if(window.crypto&&window.crypto.getRandomValues){var arr=new Uint8Array(5);window.crypto.getRandomValues(arr);return Array.from(arr).map(function(v){return v.toString(16).padStart(2,"0");}).join("").toUpperCase();}return Math.random().toString(36).slice(2,10).toUpperCase();}
+C.ensure(state,Date.now(),seedInvite());save();
+var inviteFromLink = new URLSearchParams(window.location.search).get("ref");
+if(inviteFromLink && !/^NOVA-[A-Z0-9]{1,8}$/.test(inviteFromLink)) inviteFromLink=null;
+function daily(){return C.progress(state,Date.now());}
+function recordVirtualOpening(){return C.recordOpen(state,Date.now());}
+function recordVirtualClosing(){return C.recordClose(state,Date.now());}
+function quotaSummary(){var x=daily();return '<div class="daily-band"><div><strong>Tranzacții demo azi: '+x.used+' / '+x.quota+'</strong><small>'+x.remaining+' disponibile • capacitate 20→100, nu o obligație zilnică</small></div><button data-action="nav" data-value="battlepass">Battle Pass ›</button></div>';}
+function battlePass(){
+ var v=daily(),levels=C.PASS_LEVELS,position=levels[v.level-1],next=v.next;
+ var progress=next?Math.min(100,Math.round((v.xp-position.xp)/(next.xp-position.xp)*100)):100;
+ var tiles=levels.map(function(t,i){return '<div class="pass-level '+(i<v.level?"active":"locked")+'"><span class="pass-num">'+(i<v.level?"✓":i+1)+'</span><strong>'+t.title+'</strong><small>'+t.quota+' tranzacții/zi</small><small>'+t.xp+' XP</small></div>';}).join("");
+ return '<section class="panel pass-panel"><div class="sec-head"><span class="sec-title">NOVA Battle Pass · Sezon demonstrativ</span><span class="demo-badge">VIRTUAL</span></div>'+
+  '<div class="pass-hero"><div><span class="muted">Nivel '+v.level+' din 5</span><h2>'+position.title+'</h2><p>Insignă: '+v.badge+'</p></div><div class="pass-big">✦ '+v.xp+' XP</div></div>'+
+  '<div class="pass-track"><div style="width:'+progress+'%"></div></div><div class="pass-meta"><span>'+v.quota+' tranzacții demo / zi disponibile</span><span>'+(next?next.xp+' XP pentru '+next.title:"Nivel maxim deblocat")+'</span></div>'+
+  '<p class="info-copy">Nu trebuie să faci 20 de tranzacții pe zi. XP se acordă pentru primele 5 închideri demo dintr-o zi (maxim 75 XP) și pentru răspunsuri corecte la lecții. Invitațiile nu dau automat XP până la verificarea server-side.</p>'+
+  '<div class="pass-levels">'+tiles+'</div>'+quotaSummary()+'</section>';
+}
+function lessons(){
+ var x=daily(),done=x.lessonsDone;
+ return '<section class="panel"><div class="sec-head"><span class="sec-title">Misiuni educaționale</span><span class="sec-caption">+30 XP / lecție corectă</span></div>'+
+ C.LESSONS.map(function(l){
+ var completed=done.indexOf(l.id)!==-1;
+ return '<div class="lesson"><div class="lesson-top"><div><strong>'+l.title+'</strong><small>'+(completed?"Finalizată • +30 XP":"Răspunde corect pentru a debloca XP")+'</small></div><span class="mini-tag '+(completed?"long":"")+'">'+(completed?"✓ Completată":"30 XP")+'</span></div>'+
+ (completed?"":'<div class="lesson-question">'+l.question+'</div><div class="lesson-options">'+l.choices.map(function(choice,i){return '<button class="lesson-answer" data-action="lesson" data-value="'+l.id+":"+i+'">'+(i+1)+'. '+choice+'</button>';}).join("")+'</div>')+'</div>';
+ }).join("")+'</section>';
+}
+function referralInvitation(){
+ if(!inviteFromLink||inviteFromLink===daily().inviteCode||daily().invitedBy===inviteFromLink)return "";
+ return '<div class="invite-banner"><strong>Invitație de echipă (DEMO)</strong><p>Ai deschis un link cu codul <b>'+escapeHtml(inviteFromLink)+'</b>. Îl poți salva local; invitatorul nu primește încă membri verificați sau bonusuri.</p><button data-action="accept-invite">Acceptă invitația demo</button><button data-action="dismiss-invite">Ignoră</button></div>';
+}
+function teamPage(){
+ var v=daily(),base=window.location.origin+window.location.pathname,link=base+"?ref="+encodeURIComponent(v.inviteCode);
+ return layout(referralInvitation()+'<section class="panel"><div class="sec-head"><span class="sec-title">Echipa mea</span><span class="demo-badge">DEMO</span></div>'+
+ '<label class="form-label" for="team-name">Numele echipei</label><input maxlength="32" id="team-name" class="field" value="'+escapeHtml(v.teamName)+'">'+
+ '<button class="subtle-btn" data-action="rename-team" style="margin-top:9px">Salvează numele</button>'+
+ '<div class="team-code"><small>Codul tău de invitație demonstrativ</small><strong>'+v.inviteCode+'</strong></div>'+
+ '<label class="form-label" for="invite-link">Link de invitație</label><input readonly id="invite-link" class="field" value="'+escapeHtml(link)+'">'+
+ '<button class="primary" style="margin-top:10px" data-action="copy-ref">Copiază linkul</button>'+
+ '<div class="team-tree"><div class="team-node"><b>◈ Eu</b><span>'+escapeHtml(v.teamName)+'</span></div><div class="team-node secondary-node"><b>↳ Invitat de</b><span>'+escapeHtml(v.invitedBy||"Nimeni")+'</span></div><div class="team-node secondary-node"><b>↳ Membrii mei</b><span>0 confirmați — necesită conturi și backend</span></div></div></section>',
+ '<section class="panel"><div class="sec-title">Cum ar funcționa comunitatea?</div>'+
+ '<ol class="guide-steps"><li><span class="stepnum">1</span>Fiecare utilizator își creează cont și primește un cod unic din server.</li>'+
+ '<li><span class="stepnum">2</span>Poate invita alți utilizatori, care aleg dacă se alătură echipei.</li>'+
+ '<li><span class="stepnum">3</span>Arborele echipei și activitatea educațională devin vizibile numai după verificarea conturilor.</li>'+
+ '<li><span class="stepnum">4</span>Insignele comunității sunt non-financiare și nu se plătesc din investiții sau din recrutarea în lanț.</li></ol>'+
+ '<p class="info-copy">Acest MVP stochează doar invitația primită în propriul browser. Nu confirmă înscrierea, nu actualizează echipele altor persoane și nu verifică identități.</p></section>');
+}
+function passPage(){return layout(battlePass()+lessons(),levelCard()+'<section class="panel"><div class="sec-title">Reguli Battle Pass</div><p class="info-copy">Nivelurile de învățare Easy/Pro și permisul de simulări zilnice sunt separate: 20, 40, 60, 80, până la maximum 100 operațiuni zilnice. Până la un backend real, limitele sunt doar locale și se pot manipula.</p><button class="primary" data-action="nav" data-value="team">Vezi echipa și invitațiile →</button></section>');}
+
+function topbar(){return '<header class="header"><div class="brand"><div class="logo">N</div><div><div class="brand-name">NOVA <i>Trade</i></div><div class="brand-sub">Platformă de prezentare</div></div></div><div class="header-right"><span class="demo-badge">● DEMO</span><button class="small-ghost" data-action="guide">Ghid ?</button></div></header><div class="disclaimer">ⓘ <b>SIMULARE</b> — sume și tranzacții exclusiv virtuale. Rezultatele sunt fictive, nu randamente reale.</div>'+modeSwitcher()+referralInvitation();}
 function wallet(){var m=metrics(),d=E.round(m.equity-E.DEFAULT_BALANCE);return '<section class="panel hero"><div class="label">Active totale • USDT virtuali</div><div class="big-balance">'+fmt(m.equity)+' <small style="font:600 12px DM Sans;color:#bed7f2">USDT</small></div><div style="font-size:12px;font-weight:800" class="'+cssClass(d)+'">'+sign(d)+' USDT <span style="color:#b9d5ef;font-weight:500">față de soldul inițial</span></div>'+progressSvg()+'<div class="hero-metrics"><div><div class="metric-label">Disponibil</div><div class="metric-value">'+fmt(m.available)+'</div></div><div><div class="metric-label">Marjă blocată</div><div class="metric-value">'+fmt(m.frozen)+'</div></div><div><div class="metric-label">PnL deschis</div><div class="metric-value '+cssClass(m.pnl)+'">'+sign(m.pnl)+'</div></div></div></section>';}
 function harvest(){var pct=pending?Math.min(99,100*(Date.now()-busyStarted)/2100):0;
-return '<section class="panel harvest"><div class="harvest-head"><div><h2 class="harvest-heading">Harvest • One Click</h2><div class="harvest-sub">Cumpărare → vânzare în circa 2 secunde</div></div><span class="harvest-icon">↗</span></div><div style="margin-top:16px"><label class="form-label" for="harvest-amount" style="color:#bbf1dc">Sumă pentru operațiune (USDT demo)</label><input id="harvest-amount" class="field" type="number" min="1" max="10000" step="1" inputmode="decimal" value="'+escapeHtml(margin)+'" '+(pending?"disabled":"")+'></div><div class="demo-select"><button data-action="scenario" data-value="profit" class="scenario '+(scenario==="profit"?"active":"")+'" '+(pending?"disabled":"")+'>↗ Exemplu profit</button><button data-action="scenario" data-value="loss" class="scenario loss-scenario '+(scenario==="loss"?"active":"")+'" '+(pending?"disabled":"")+'>↘ Exemplu pierdere</button></div><button class="harvest-btn" data-action="harvest" '+(pending?"disabled":"")+'>'+(pending?"◌ Se execută simularea…":"✦ Începe Harvest DEMO")+'</button><div class="progress-shell"><div class="progress-value" id="harvest-progress" style="width:'+pct+'%"></div></div><div class="harvest-status" id="harvest-status">'+(pending?"1/2: Cumpărare virtuală înregistrată…":"Pregătit: BTC/USDT • LONG • scenariu demonstrativ")+'</div><div class="harvest-hint">Scenariile sunt <b>prestabilite exclusiv pentru prezentare</b>. Un exemplu de profit nu garantează niciun câștig real.</div></section>';}
+return '<section class="panel harvest"><div class="harvest-head"><div><h2 class="harvest-heading">Harvest • One Click</h2><div class="harvest-sub">Cumpărare → vânzare în circa 2 secunde</div></div><span class="harvest-icon">↗</span></div><div style="margin-top:16px"><label class="form-label" for="harvest-amount" style="color:#bbf1dc">Sumă pentru operațiune (USDT demo)</label><input id="harvest-amount" class="field" type="number" min="1" max="10000" step="1" inputmode="decimal" value="'+escapeHtml(margin)+'" '+(pending?"disabled":"")+'></div><div class="demo-select"><button data-action="scenario" data-value="profit" class="scenario '+(scenario==="profit"?"active":"")+'" '+(pending?"disabled":"")+'>↗ Exemplu profit</button><button data-action="scenario" data-value="loss" class="scenario loss-scenario '+(scenario==="loss"?"active":"")+'" '+(pending?"disabled":"")+'>↘ Exemplu pierdere</button></div><button class="harvest-btn" data-action="harvest" '+(pending?"disabled":"")+'>'+(pending?"◌ Se execută simularea…":"✦ Începe Harvest DEMO")+'</button><div class="progress-shell"><div class="progress-value" id="harvest-progress" style="width:'+pct+'%"></div></div><div class="harvest-status" id="harvest-status">'+(pending?"1/2: Cumpărare virtuală înregistrată…":"Pregătit: BTC/USDT • LONG • scenariu demonstrativ")+'</div><div class="harvest-hint">Scenariile sunt <b>prestabilite exclusiv pentru prezentare</b>. Un exemplu de profit nu garantează niciun câștig real.</div>'+quotaSummary()+'</section>';}
 function stats(){var m=metrics(),items=[["⌁","Rezultat azi",sign(todayPnl(0))+" USDT",cssClass(todayPnl(0))],["◧","Marjă blocată",fmt(m.frozen)+" USDT",""],["✓","Tranzacții finalizate",state.executions.length,""],["◉","Sold disponibil",fmt(m.available)+" USDT",""],["◷","Rezultat ieri",sign(todayPnl(1))+" USDT",cssClass(todayPnl(1))],["⇄","Poziții active",state.positions.length,""]];
 return '<section class="panel"><div class="sec-head"><span class="sec-title">Rezumat cont</span><span class="sec-caption">Virtual</span></div><div class="gridstats">'+items.map(function(it){return '<div class="statbox"><span class="staticon">'+it[0]+'</span><span class="statlabel">'+it[1]+'</span><strong class="statvalue '+it[3]+'">'+it[2]+'</strong></div>';}).join("")+'</div></section>';}
 function coin(a){return '<div class="coin coin-'+a+'">'+E.ASSETS[a].symbol+'</div>';}
@@ -95,6 +146,8 @@ return '<div class="page"><div class="column"><section class="panel"><div class=
 function layout(a,b){return '<div class="page"><div class="column">'+a+'</div><div class="column">'+b+'</div></div>';}
 function main(){
 switch(tab){
+case "battlepass":return passPage();
+case "team":return teamPage();
 case "home":
   return isPro()
     ? layout(wallet()+chart()+positionPanel(),form()+levelCard()+history(false))
@@ -108,22 +161,22 @@ case "levels":return levelPage();
 case "profile":return profile();
 default:return layout(wallet()+harvest(),levelCard()+history(false));
 }}
-function nav(){var items=[["home","⌂","Acasă"],["markets","▥","Piețe"],["harvest","✦","Harvest"],["history","≡","Istoric"],["levels","◇","Nivel"],["profile","♙","Profil"]];return '<nav class="nav" aria-label="Meniu principal">'+items.map(function(x){return '<button class="navbtn '+(tab===x[0]||(tab==="trade"&&x[0]==="markets")?"selected":"")+'" data-action="nav" data-value="'+x[0]+'"><span class="ico">'+x[1]+'</span>'+x[2]+'</button>';}).join("")+'</nav>';}
+function nav(){var items=[["home","⌂","Acasă"],["harvest","✦","Harvest"],["battlepass","✧","Pass"],["team","♧","Echipă"],["profile","♙","Profil"]];return '<nav class="nav" aria-label="Meniu principal">'+items.map(function(x){return '<button class="navbtn '+(tab===x[0]||(tab==="trade"&&x[0]==="markets")?"selected":"")+'" data-action="nav" data-value="'+x[0]+'"><span class="ico">'+x[1]+'</span>'+x[2]+'</button>';}).join("")+'</nav>';}
 function render(){var t=toastText?'<div class="toast" role="status">'+escapeHtml(toastText)+'</div>':"";$("app").innerHTML='<main class="layout">'+topbar()+main()+'</main>'+nav()+t;}
 function notify(txt){toastText=txt;render();clearTimeout(timer);timer=setTimeout(function(){toastText="";var t=document.querySelector(".toast");if(t)t.remove();},5000);}
 function go(t){tab=t;render();window.scrollTo(0,0);}
-function startHarvest(){if(pending)return;var m=Number(margin),fee=E.round(m*E.FEE_RATE);
+function startHarvest(){if(pending)return;if(!C.canTrade(state,Date.now()))return notify("Ai folosit toate tranzacțiile demo disponibile astăzi. Continuă lecțiile sau revino mâine.");var m=Number(margin),fee=E.round(m*E.FEE_RATE);
 if(!Number.isFinite(m)||m<1||m>10000)return notify("Introdu o sumă de 1–10.000 USDT virtuali.");
 if(m+fee>state.cash)return notify("Sold virtual insuficient.");
 var open;try{open=E.open(state,{asset:"BTC",side:"LONG",margin:m,leverage:1,entry:price("BTC"),automated:true});}catch(e){return notify(e.message);}
-state=open.state;save();pending=true;busyStarted=Date.now();render();
+state=open.state;recordVirtualOpening();save();pending=true;busyStarted=Date.now();render();
 var id=open.position.id,mode=scenario;
 var indicator=setInterval(function(){var elapsed=Date.now()-busyStarted,b=$("harvest-progress"),st=$("harvest-status");if(b)b.style.width=Math.min(100,elapsed/2000*100)+"%";if(st && elapsed>950)st.textContent="2/2: Vânzare virtuală și calculul rezultatului…";if(elapsed>=2000)clearInterval(indicator);},70);
-setTimeout(function(){clearInterval(indicator);try{var position=state.positions.find(function(x){return x.id===id;});if(position){var result=E.close(state,id,E.harvestExit(position,mode),"harvest");state=result.state;var newRank=syncLevel();pending=false;notify((newRank?"Nivel nou: "+newRank+". ":"")+(mode==="profit"?"Exemplu de profit: ":"Exemplu de pierdere: ")+sign(result.execution.pnl)+" USDT virtuali. Vezi Istoric.");}else{pending=false;notify("Operațiunea demo nu a fost găsită.");}}catch(e){pending=false;notify("Eroare demo: "+e.message);}},2050);}
-function openManual(){if(pending)return;if(!isPro())return notify("Deblochează și activează NOVA Pro pentru Long / Short manual.");try{var opened=E.open(state,{asset:pair,side:side,margin:Number(manualMargin),leverage:lever,entry:price(pair),automated:false});state=opened.state;save();tab="positions";notify("Poziția "+side+" demo este deschisă.");}catch(e){notify(e.message);}}
-function closeManual(id){if(pending)return;var x=state.positions.find(function(p){return p.id===id;});if(!x)return notify("Poziția nu există.");if(!window.confirm("Închizi poziția virtuală "+x.asset+" "+x.side+"?"))return;try{var r=E.close(state,id,price(x.asset),"manual");state=r.state;var newRank=syncLevel();notify((newRank?"Nivel nou: "+newRank+". ":"")+"Închidere virtuală, PnL net: "+sign(r.execution.pnl)+" USDT.");}catch(e){notify(e.message);}}
+setTimeout(function(){clearInterval(indicator);try{var position=state.positions.find(function(x){return x.id===id;});if(position){var result=E.close(state,id,E.harvestExit(position,mode),"harvest");state=result.state;recordVirtualClosing();var newRank=syncLevel();pending=false;notify((newRank?"Nivel nou: "+newRank+". ":"")+(mode==="profit"?"Exemplu de profit: ":"Exemplu de pierdere: ")+sign(result.execution.pnl)+" USDT virtuali. Vezi Istoric.");}else{pending=false;notify("Operațiunea demo nu a fost găsită.");}}catch(e){pending=false;notify("Eroare demo: "+e.message);}},2050);}
+function openManual(){if(pending)return;if(!C.canTrade(state,Date.now()))return notify("Limita zilnică de tranzacții virtuale a fost atinsă.");if(!isPro())return notify("Deblochează și activează NOVA Pro pentru Long / Short manual.");try{var opened=E.open(state,{asset:pair,side:side,margin:Number(manualMargin),leverage:lever,entry:price(pair),automated:false});state=opened.state;recordVirtualOpening();save();tab="positions";notify("Poziția "+side+" demo este deschisă.");}catch(e){notify(e.message);}}
+function closeManual(id){if(pending)return;var x=state.positions.find(function(p){return p.id===id;});if(!x)return notify("Poziția nu există.");if(!window.confirm("Închizi poziția virtuală "+x.asset+" "+x.side+"?"))return;try{var r=E.close(state,id,price(x.asset),"manual");state=r.state;recordVirtualClosing();var newRank=syncLevel();notify((newRank?"Nivel nou: "+newRank+". ":"")+"Închidere virtuală, PnL net: "+sign(r.execution.pnl)+" USDT.");}catch(e){notify(e.message);}}
 document.addEventListener("click",function(event){var el=event.target.closest("[data-action]");if(!el)return;var a=el.dataset.action,v=el.dataset.value;
-if(a==="nav")go(v);else if(a==="mode"){try{var status=P.setMode(state,v,metrics().equity);save();go("home");notify("Modul NOVA "+status.mode+" a fost activat.");}catch(e){go("levels");notify(e.message);}}else if(a==="scenario"&&!pending){scenario=v;render();}
+if(a==="nav")go(v);else if(a==="copy-ref"){var link=$("invite-link").value;if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(link).then(function(){notify("Linkul de invitație DEMO a fost copiat.");}).catch(function(){window.prompt("Copiază linkul:",link);});}else window.prompt("Copiază linkul:",link);}else if(a==="dismiss-invite"){inviteFromLink=null;render();}else if(a==="accept-invite"){try{C.joinPreview(state,inviteFromLink,Date.now());save();inviteFromLink=null;notify("Invitația a fost salvată local (DEMO). Nu este o înscriere verificată.");}catch(e){notify(e.message);}}else if(a==="rename-team"){try{C.renameTeam(state,$("team-name").value,Date.now());save();notify("Numele echipei DEMO a fost actualizat.");}catch(e){notify(e.message);}}else if(a==="lesson"){var parts=v.split(":"),result=C.completeLesson(state,parts[0],Number(parts[1]),Date.now());if(result.correct){save();notify(result.alreadyDone?"Lecția era deja completată.":"+30 XP • Lecție completată!");}else notify("Nu este corect. Poți încerca din nou, fără penalizare.");}else if(a==="mode"){try{var status=P.setMode(state,v,metrics().equity);save();go("home");notify("Modul NOVA "+status.mode+" a fost activat.");}catch(e){go("levels");notify(e.message);}}else if(a==="scenario"&&!pending){scenario=v;render();}
 else if(a==="harvest")startHarvest();
 else if(a==="pair"){pair=v;go("trade");}
 else if(a==="asset"){pair=v;render();}
@@ -133,11 +186,11 @@ else if(a==="lever"){lever=Number(v);render();}
 else if(a==="manual")openManual();
 else if(a==="close")closeManual(v);
 else if(a==="filter"){filter=v;render();}
-else if(a==="reset"){if(pending)return notify("Așteaptă finalizarea Harvest.");if(window.confirm("Resetezi soldul virtual la 5.000 USDT și ștergi istoricul demo?")){state=E.startingState();syncLevel();tab="home";notify("Contul demonstrativ a fost resetat.");}}
+else if(a==="reset"){if(pending)return notify("Așteaptă finalizarea Harvest.");if(window.confirm("Resetezi soldul virtual la 5.000 USDT și ștergi istoricul demo?")){state=E.startingState();C.ensure(state,Date.now(),seedInvite());syncLevel();tab="home";notify("Contul demonstrativ a fost resetat.");}}
 else if(a==="guide")window.alert("Ghid demo:\n1. Alege Exemplu profit sau Exemplu pierdere (fictive).\n2. Apasă Harvest. Așteaptă 2 secunde.\n3. Arată soldul nou și perechea cumpărare/vânzare din Istoric.\n4. Testează Long/Short manual.\n\nAtenție: Nu există fonduri sau tranzacții reale.");});
 document.addEventListener("input",function(event){if(event.target.id==="harvest-amount")margin=event.target.value;else if(event.target.id==="manual-amount"){manualMargin=event.target.value;var n=$("notional"),f=$("orderfee"),amount=Number(manualMargin)||0;if(n)n.textContent=fmt(amount*lever)+" USDT";if(f)f.textContent=fmt(E.round(amount*lever*E.FEE_RATE))+" USDT";}});
 document.addEventListener("change",function(event){if(event.target.id==="filter-date"){filterDate=event.target.value;render();}});
 setInterval(function(){if(document.hidden||pending)return;var focused=document.activeElement;if(focused && ["INPUT","SELECT","TEXTAREA"].includes(focused.tagName))return;
-for(var i=state.positions.length-1;i>=0;i--){var po=state.positions[i];if(E.unrealized(po,price(po.asset))<=-po.margin){try{state=E.close(state,po.id,price(po.asset),"liquidation").state;save();}catch(e){}}}render();},4000);
+for(var i=state.positions.length-1;i>=0;i--){var po=state.positions[i];if(E.unrealized(po,price(po.asset))<=-po.margin){try{state=E.close(state,po.id,price(po.asset),"liquidation").state;recordVirtualClosing();save();}catch(e){}}}render();},4000);
 syncLevel();render();
 })();
